@@ -1,0 +1,11 @@
+{
+  "name": "cli-generation",
+  "version": "1.0.0",
+  "description": "Autonomous CLI generation from any API surface. 10-phase subagent pipeline: auth recon, API mapping, validation, architecture, audit, TDD generation, skill creation.",
+  "author": {
+    "name": "Kaleb Cole"
+  },
+  "repository": "https://github.com/KalebCole/cli-generation",
+  "license": "MIT",
+  "keywords": ["cli", "generation", "api", "automation", "tdd", "subagent"]
+}

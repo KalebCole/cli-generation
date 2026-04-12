@@ -15,8 +15,10 @@
 claude plugin marketplace add https://github.com/KalebCole/cli-generation.git
 
 # 2. Install the plugin
-claude plugin install cli-generation
+claude plugin install cli-generation@cli-generation-marketplace
 ```
+
+Or from within Claude Code: `/plugin marketplace add KalebCole/cli-generation`, then `/plugin install cli-generation`.
 
 Requires the `superpowers` plugin for TDD and skill creation:
 
@@ -62,7 +64,7 @@ Each phase runs in its own subagent. No context bloat.
 
 ## The Pipeline
 
-```
+```text
 Input (URL | spec | SDK | endpoint list | proto | GraphQL)
   │
   ▼

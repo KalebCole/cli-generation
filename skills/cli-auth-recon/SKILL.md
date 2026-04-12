@@ -193,4 +193,4 @@ When all 5 resolution steps fail, write `auth-blocked.json`:
 }
 ```
 
-Do not prompt the user directly. Write the file and surface it to the orchestrator. Let the orchestrator handle the user interaction.
+Write `auth-blocked.json` with the details above. If you have the `AskUserQuestion` tool available (e.g., when dispatched as a subagent), prompt the user directly for the missing fields. Otherwise, surface the file to the orchestrator and let it handle the user interaction.

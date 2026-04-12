@@ -73,6 +73,18 @@ Each phase runs in its own subagent. No approval gates between phases. No contex
 
 The pipeline always pauses at Phase 8 for skill ideation. You review the brainstorm, select which skills to generate, and decide what to build next.
 
+## External Dependencies
+
+The pipeline's Phase 6 (CLI generation) and Phase 9 (skill generation) invoke skills from the `superpowers` plugin:
+
+- `superpowers:test-driven-development` — used by cli-generator agent
+- `superpowers:verification-before-completion` — used by cli-generator agent
+- `superpowers:skill-creator` — used by skill-generator agent
+
+Install superpowers first: `/install github:claude-plugins-official/superpowers`
+
+If superpowers is not installed, these phases will use fallback behavior (no TDD cycle, template-based skill generation).
+
 ## Design Spec
 
 Full architecture, phase details, and context management strategy: [docs/specs/2026-04-12-cli-generation-plugin-design.md](docs/specs/2026-04-12-cli-generation-plugin-design.md)

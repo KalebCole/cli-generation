@@ -374,11 +374,12 @@ After Phase 9 completes (or Phase 8 if skills were skipped):
    > - Yes (creates github.com/<user>/<cli_name>)
    > - No (keep local only)
 
-5. If yes, run:
+5. If yes, run from the CLI repo:
    ```bash
-   bash <plugin_root>/scripts/push-to-github.sh "<repo_path>" "<cli_name>"
+   cd "<repo_path>"
+   gh repo create "<cli_name>" --private --source=. --push
    ```
-   Report the repo URL from the script's JSON output.
+   Capture the repo URL with `gh repo view --json url -q '.url'`.
 
 6. Final message:
    ```

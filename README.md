@@ -64,42 +64,48 @@ Each phase runs in its own subagent. No context bloat.
 
 ## The Pipeline
 
-```text
-Input (URL | spec | SDK | endpoint list | proto | GraphQL)
-  │
-  ▼
-Phase 0: CLASSIFY INPUT ──────────── You pick: CLI name, repo path, tech stack
-  │
-  ▼
-Phase 1: AUTH RECON ───────────────── Agent: auth-recon
-  │  Try Edge cookies, env vars, OpenAPI, cloud configs, unauthenticated probe
-  │  Fallback: asks you once if stuck
-  ▼
-Phase 2: API RECON ────────────────── Agent: api-recon
-  │  Parse docs first. Reverse-engineer only when needed.
-  ▼
-Phase 3: VALIDATE ─────────────────── Agent: endpoint-validator
-  │  Hit endpoints with auth, confirm responses match schemas
-  ▼
-Phase 4: ARCHITECT ────────────────── Agent: cli-architect
-  │  Command tree, flags, JSON output, auth commands, HTTP module
-  ▼
-Phase 5: AUDIT ARCHITECTURE ───────── Agent: architecture-auditor
-  │  14-point quality checklist. Loop → Phase 4 if grade < B (max 2x)
-  ▼
-Phase 6: GENERATE CLI ─────────────── Agent: cli-generator
-  │  TDD: write tests first, implement, verify. Full src/ + tests/
-  ▼
-Phase 7: AUDIT IMPLEMENTATION ─────── Agent: implementation-auditor
-  │  14-point checklist against code. Loop → Phase 6 if grade < B (max 2x)
-  ▼
-Phase 8: IDEATE SKILLS ────────────── Agent: skill-ideator
-  │  6-category brainstorm. PAUSE: you pick which skills to generate.
-  ▼
-Phase 9: GENERATE SKILLS ──────────── Agent: skill-generator
-  │  Full SKILL.md files with eval harness and trigger testing
-  ▼
-DONE ──────────────────────────────── Optional: push to GitHub
+```mermaid
+flowchart TD
+    INPUT(["🔗 URL &nbsp;|&nbsp; 📄 Spec &nbsp;|&nbsp; 📦 SDK &nbsp;|&nbsp; Proto &nbsp;|&nbsp; GraphQL"])
+    
+    P0["<b>Phase 0</b><br/>Classify Input<br/><i>You pick: name, path, stack</i>"]
+    
+    P1["<b>Phase 1</b> · auth-recon<br/>Auth Discovery<br/><i>5 strategies, 11 auth types</i>"]
+    P2["<b>Phase 2</b> · api-recon<br/>API Mapping<br/><i>Parse docs → reverse-engineer</i>"]
+    P3["<b>Phase 3</b> · endpoint-validator<br/>Validate Endpoints<br/><i>Hit every endpoint, confirm schemas</i>"]
+    
+    P4["<b>Phase 4</b> · cli-architect<br/>Design CLI Architecture<br/><i>Commands, flags, JSON output</i>"]
+    P5{"<b>Phase 5</b><br/>Audit Architecture<br/>14-point checklist"}
+    
+    P6["<b>Phase 6</b> · cli-generator<br/>Generate CLI (TDD)<br/><i>Tests first, then implement</i>"]
+    P7{"<b>Phase 7</b><br/>Audit Implementation<br/>14-point checklist"}
+    
+    P8["<b>Phase 8</b> · skill-ideator<br/>Ideate Skills<br/><i>6-category brainstorm</i>"]
+    PAUSE(["⏸️ You select which skills to generate"])
+    P9["<b>Phase 9</b> · skill-generator<br/>Generate SKILL.md files<br/><i>Full eval harness + triggers</i>"]
+    
+    DONE(["✅ Done · Optional: push to GitHub"])
+
+    INPUT --> P0
+    P0 --> P1
+    P1 --> P2
+    P2 --> P3
+    P3 --> P4
+    P4 --> P5
+    P5 -->|"grade ≥ B"| P6
+    P5 -->|"grade < B (max 2×)"| P4
+    P6 --> P7
+    P7 -->|"grade ≥ B"| P8
+    P7 -->|"grade < B (max 2×)"| P6
+    P8 --> PAUSE
+    PAUSE --> P9
+    P9 --> DONE
+
+    style INPUT fill:#1a1a2e,stroke:#e94560,color:#fff
+    style DONE fill:#0f3460,stroke:#16213e,color:#fff
+    style PAUSE fill:#533483,stroke:#e94560,color:#fff
+    style P5 fill:#e94560,stroke:#16213e,color:#fff
+    style P7 fill:#e94560,stroke:#16213e,color:#fff
 ```
 
 ## Tech Stack Options

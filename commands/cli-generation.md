@@ -29,6 +29,50 @@ Before doing anything else:
    ```
 5. If the user chooses to resume, skip to the first incomplete phase.
 6. If the user declines, delete the `.cli-pipeline/` directory and start from Phase 0.
+7. **Rebuild task UI on resume:** Create tasks for all 10 phases using TaskCreate (see Progress Tracking below). Then immediately mark completed phases as `completed` via TaskUpdate. This rebuilds the visual progress list from durable state. If TaskCreate is unavailable, skip this step.
+
+---
+
+## Progress Tracking
+
+Use **dual tracking** for pipeline progress:
+
+1. **`pipeline-status.json`** — durable JSON file for cross-session resume. This is the source of truth. Always updated.
+2. **TaskCreate / TaskUpdate** — visual task list shown in the Claude Code status line. Additive UX only.
+
+TaskCreate and TaskUpdate are built-in Claude Code tools. They may not exist in other runtimes (Copilot CLI, etc.). **If TaskCreate or TaskUpdate is unavailable, skip all task UI calls silently.** The pipeline works entirely through `pipeline-status.json` — the task UI is a visual bonus, never a requirement.
+
+### Task creation pattern
+
+After writing `pipeline-status.json` (Step 0.7), create 10 tasks:
+
+| Task subject | activeForm |
+|---|---|
+| Phase 0: Classify input | Classifying input... |
+| Phase 1: Auth recon | Discovering auth mechanism... |
+| Phase 2: API recon | Mapping API surface... |
+| Phase 3: Validate endpoints | Validating endpoints... |
+| Phase 4: Design CLI architecture | Designing CLI architecture... |
+| Phase 5: Audit architecture | Auditing architecture... |
+| Phase 6: Generate CLI (TDD) | Generating CLI code... |
+| Phase 7: Audit implementation | Auditing implementation... |
+| Phase 8: Ideate skills | Brainstorming skill ideas... |
+| Phase 9: Generate skills | Generating SKILL.md files... |
+
+Mark Phase 0 as `completed` immediately (it just ran).
+
+### Task update pattern
+
+For each phase dispatch:
+- **Before dispatch:** `TaskUpdate` → status `in_progress`
+- **After completion:** `TaskUpdate` → status `completed`
+- **On failure:** Leave as `in_progress` (the failure message to the user provides context)
+
+### Audit loop task updates
+
+When Phase 5 or Phase 7 loops back:
+- Set the audit task back to `in_progress` with activeForm "Re-auditing architecture (iteration 2)..."
+- Set the upstream task (Phase 4 or 6) back to `in_progress` with activeForm "Revising architecture..." or "Fixing implementation..."
 
 ---
 
@@ -127,13 +171,19 @@ Write `.cli-pipeline/pipeline-status.json`:
 }
 ```
 
+### Step 0.8: Create Visual Task List
+
+Create tasks for visual progress tracking (see Progress Tracking section). Use TaskCreate to create one task per phase with the subjects and activeForm labels from the table above. Immediately mark "Phase 0: Classify input" as `completed` via TaskUpdate.
+
+If TaskCreate is unavailable, skip this step — `pipeline-status.json` handles all tracking.
+
 ---
 
 ## Phase Dispatch Protocol
 
 For every phase (1-9), follow this exact sequence:
 
-1. **Update status**: Read `.cli-pipeline/pipeline-status.json`, set the current phase to `"in_progress"`, write it back.
+1. **Update status**: Read `.cli-pipeline/pipeline-status.json`, set the current phase to `"in_progress"`, write it back. Also `TaskUpdate` the corresponding task to `in_progress` (if TaskUpdate is available).
 2. **Dispatch agent**: Use the Agent tool with `subagent_type` set to the agent name. Include in the prompt:
    - The phase number and name
    - Exact input file paths (absolute, using `repo_path` from `input-classification.json`)
@@ -141,7 +191,7 @@ For every phase (1-9), follow this exact sequence:
    - The `repo_path` value
    - Any phase-specific parameters (listed per-phase below)
 3. **Verify output**: After the agent returns, confirm the expected output file exists using Glob or Read (first few lines only — do NOT load full content into orchestrator context).
-4. **Update status**: Set the phase to `"completed"` with `"completed_at": "<ISO-8601>"` in `pipeline-status.json`.
+4. **Update status**: Set the phase to `"completed"` with `"completed_at": "<ISO-8601>"` in `pipeline-status.json`. Also `TaskUpdate` the corresponding task to `completed` (if available).
 
 If an agent fails (output file missing or agent reports error), set the phase status to `"failed"` with `"error": "<brief description>"` and stop the pipeline. Report the failure to the user.
 
@@ -227,9 +277,10 @@ After the agent completes:
 
 **If grade < B AND iterations < 2:**
 1. Increment `iterations` in `pipeline-status.json`.
-2. Re-dispatch the `cli-architect` agent (Phase 4) with the audit findings appended to the prompt (see Phase 4 retry prompt above).
-3. Re-dispatch the `architecture-auditor` agent (Phase 5) to re-audit.
-4. Check the grade again. Repeat up to 2 total iterations.
+2. Update task UI: `TaskUpdate` the Phase 4 task back to `in_progress` with activeForm "Revising architecture...". `TaskUpdate` the Phase 5 task back to `in_progress` with activeForm "Re-auditing architecture (iteration 2)...".
+3. Re-dispatch the `cli-architect` agent (Phase 4) with the audit findings appended to the prompt (see Phase 4 retry prompt above).
+4. Re-dispatch the `architecture-auditor` agent (Phase 5) to re-audit.
+5. Check the grade again. Repeat up to 2 total iterations.
 
 **If grade < B AND iterations >= 2:** Mark Phase 5 completed with a warning. Log:
   > Architecture audit grade is <grade> after 2 iterations. Proceeding with warnings.
@@ -277,8 +328,9 @@ Same pattern as Phase 5:
 
 **If grade < B AND iterations < 2:**
 1. Increment `iterations` in `pipeline-status.json` for `7_implementation_audit`.
-2. Re-dispatch the `cli-generator` agent (Phase 6) with audit findings in the prompt.
-3. Re-dispatch the `implementation-auditor` agent (Phase 7) to re-audit.
+2. Update task UI: `TaskUpdate` the Phase 6 task back to `in_progress` with activeForm "Fixing implementation...". `TaskUpdate` the Phase 7 task back to `in_progress` with activeForm "Re-auditing implementation (iteration 2)...".
+3. Re-dispatch the `cli-generator` agent (Phase 6) with audit findings in the prompt.
+4. Re-dispatch the `implementation-auditor` agent (Phase 7) to re-audit.
 
 **If grade < B AND iterations >= 2:** Mark Phase 7 completed with a warning.
 

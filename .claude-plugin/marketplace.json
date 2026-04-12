@@ -1,0 +1,22 @@
+{
+  "name": "cli-generation-marketplace",
+  "owner": {
+    "name": "Kaleb Cole"
+  },
+  "metadata": {
+    "description": "Autonomous CLI generation from any API surface",
+    "version": "1.0.0"
+  },
+  "plugins": [
+    {
+      "name": "cli-generation",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/KalebCole/cli-generation.git"
+      },
+      "description": "Autonomous CLI generation from any API surface. 10-phase subagent pipeline: auth recon, API mapping, validation, architecture, audit, TDD generation, skill creation.",
+      "version": "1.0.0",
+      "strict": true
+    }
+  ]
+}

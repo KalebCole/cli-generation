@@ -66,7 +66,7 @@ Each phase runs in its own subagent. No context bloat.
 
 ```mermaid
 flowchart TD
-    INPUT(["🔗 URL &nbsp;|&nbsp; 📄 Spec &nbsp;|&nbsp; 📦 SDK &nbsp;|&nbsp; Proto &nbsp;|&nbsp; GraphQL"])
+    INPUT["URL | Spec | SDK | Proto | GraphQL"]
     
     P0["<b>Phase 0</b><br/>Classify Input<br/><i>You pick: name, path, stack</i>"]
     
@@ -81,10 +81,10 @@ flowchart TD
     P7{"<b>Phase 7</b><br/>Audit Implementation<br/>14-point checklist"}
     
     P8["<b>Phase 8</b> · skill-ideator<br/>Ideate Skills<br/><i>6-category brainstorm</i>"]
-    PAUSE(["⏸️ You select which skills to generate"])
+    PAUSE["<b>PAUSE</b><br/>You select which skills to generate"]
     P9["<b>Phase 9</b> · skill-generator<br/>Generate SKILL.md files<br/><i>Full eval harness + triggers</i>"]
     
-    DONE(["✅ Done · Optional: push to GitHub"])
+    DONE(["Done · Push to GitHub"])
 
     INPUT --> P0
     P0 --> P1

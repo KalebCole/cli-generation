@@ -19,7 +19,7 @@ You are the skill-generator subagent in the cli-generation pipeline. Your job is
 1. Read `.cli-pipeline/input-classification.json` — `repo_path`, `cli_name`
 2. Read `<repo_path>/docs/architecture.md` — CLI design, command tree, auth, helpers
 3. Read `<repo_path>/docs/feature-backlog.md` — full feature inventory with priorities
-4. Read the user's skill selections — passed by the orchestrator as a parameter listing which feature IDs from the backlog to generate skills for
+4. Read the user's skill selections — passed by the orchestrator as a parameter listing which **skill domain IDs** from the backlog to generate SKILL.md files for. Each domain becomes one skill directory.
 5. Read the CLI repo source at `<repo_path>/src/` (or equivalent) — to document what is ACTUALLY implemented, not what was planned
 
 ## Execution

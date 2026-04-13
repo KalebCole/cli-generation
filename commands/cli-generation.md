@@ -203,7 +203,7 @@ For every phase (1-9), follow this exact sequence:
    - The `repo_path` value
    - Any phase-specific parameters (listed per-phase below)
 3. **Verify output**: After the agent returns, confirm the expected output file exists using Glob or Read (first few lines only — do NOT load full content into orchestrator context).
-3b. **Write phase output manifest**: Read only the minimal fields needed from the phase's primary artifact (first 10-20 lines). Write an immutable manifest to `.cli-pipeline/phase-outputs/phase-NN-<name>.json`:
+3b. **Write phase output manifest**: Read only the minimal fields needed from the phase's primary artifact (first 10-20 lines). Write a manifest to `.cli-pipeline/phase-outputs/phase-NN-<name>.json`:
 
 ```json
 {
@@ -214,7 +214,7 @@ For every phase (1-9), follow this exact sequence:
 }
 ```
 
-The `outputs` object contains phase-specific summary fields (defined per-phase below). This file is immutable once written — later phases read it but never modify it.
+The `outputs` object contains phase-specific summary fields (defined per-phase below). For retryable phases (5, 7), the manifest is overwritten on each iteration — the latest version is always the current truth.
 
 4. **Update status**: Set the phase to `"completed"` with `"completed_at": "<ISO-8601>"` in `pipeline-status.json`. Also `TaskUpdate` the corresponding task to `completed` (skip if TaskCreate was unavailable at pipeline start).
 
@@ -252,7 +252,7 @@ Write `.cli-pipeline/phase-outputs/phase-01-auth.json`:
 
 Write `.cli-pipeline/phase-outputs/phase-02-api.json`:
 - Read `coverage` and `service` fields from `endpoints.json` (do NOT load the full endpoint list)
-- `"outputs": { "endpoint_count": N, "resource_groups": ["<tag1>", "<tag2>"], "base_url": "<url>", "spec_source": "<source>" }`
+- `"outputs": { "endpoint_count": N, "base_url": "<url>", "spec_source": "<source>" }`
 
 ---
 

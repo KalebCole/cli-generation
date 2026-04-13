@@ -57,7 +57,8 @@ If this agent receives an `audit-findings` parameter (dispatched by orchestrator
    3. Run all tests to verify shared modules work.
 
 5. **Decide parallelization strategy:**
-   - Count the number of resource groups in `validated-endpoints.json` (using `tags`).
+   - If this is an **audit-fix retry** (dispatched with `audit-findings` parameter), skip to step 7 regardless of resource count. Audit fixes must be surgical, not regenerative.
+   - Count the number of unique resource groups by collecting all distinct values from the `tags` field across all endpoints in `validated-endpoints.json`. If `tags` is an array, flatten and deduplicate.
    - If **≤ 5 resource groups**: implement all commands sequentially in this agent (skip to step 7).
    - If **> 5 resource groups**: proceed to step 6 for parallel dispatch.
 
@@ -74,16 +75,14 @@ If this agent receives an `audit-findings` parameter (dispatched by orchestrator
    - <repo_path>/docs/architecture.md (the CLI design — find the <resource> section)
    - .cli-pipeline/validated-endpoints.json (find endpoints with tag '<resource>')
    - .cli-pipeline/input-classification.json (tech_stack, cli_name)
-   - <repo_path>/src/<cli_name>/client.py (or equivalent — the shared HTTP client)
-   - <repo_path>/src/<cli_name>/auth.py (or equivalent — the shared auth module)
-   - <repo_path>/src/<cli_name>/types.py (or equivalent — shared types)
-   - <repo_path>/src/<cli_name>/errors.py (or equivalent — shared error types)
+   - The shared modules in the lib/ directory (client, auth, types, errors — read input-classification.json for tech_stack to find the right file extensions)
 
    Use superpowers:test-driven-development.
 
-   Generate ONLY:
-   - <repo_path>/src/<cli_name>/commands/<resource>_cmd.py (or .ts/.ps1)
-   - <repo_path>/tests/test_commands/test_<resource>_cmd.py (or equivalent)
+   IMPORTANT: Read tech_stack from input-classification.json to determine file paths:
+   - Python: src/<cli_name>/commands/<resource>_cmd.py + tests/test_commands/test_<resource>_cmd.py
+   - TypeScript: src/commands/<resource>.ts + tests/commands/<resource>.test.ts
+   - PowerShell: commands/<resource>.ps1 + tests/<resource>.Tests.ps1
 
    For each endpoint with tag '<resource>':
    - Map operation_id to command name
@@ -95,13 +94,15 @@ If this agent receives an `audit-findings` parameter (dispatched by orchestrator
    Run tests after implementation. All tests must pass.
 
    Return ONLY this JSON as your final message:
-   {\"resource\": \"<resource>\", \"commands\": <N>, \"tests\": <N>, \"status\": \"passed\"}"
+   {\"resource\": \"<resource>\", \"commands\": <N>, \"tests\": <N>, \"status\": \"passed\"}
+   If tests fail or generation errors occur, return:
+   {\"resource\": \"<resource>\", \"commands\": <N>, \"tests\": <N>, \"status\": \"failed\", \"error\": \"<reason>\"}"
    })
    ```
 
    Dispatch up to 4 resource groups in parallel (to stay within reasonable concurrent agent limits). Wait for all to complete before dispatching the next batch.
 
-   If any subagent returns `"status": "failed"` or does not return the expected JSON, immediately halt parallel dispatch, log which resource group failed, and fall back to the sequential path (step 7) for all remaining resource groups including the failed one.
+   **Error handling:** If any subagent returns `"status": "failed"` or does not return the expected JSON, immediately halt parallel dispatch. Fall back to sequential mode (step 7) for the failed resource group and all remaining undispatched groups.
 
 7. **Sequential resource implementation** (only if ≤ 5 resource groups, audit-fix mode, or parallel dispatch fallback):
 

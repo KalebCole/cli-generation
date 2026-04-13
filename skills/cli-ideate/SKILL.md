@@ -114,7 +114,7 @@ Check against target for CLI type:
 | CLI Type | Target | If over target | If under target |
 |----------|--------|----------------|-----------------|
 | Multi-service (3+ groups) | 4–8 | Merge related domains | Check for missed intent clusters |
-| Single-service (1-2 groups) | 2–4 | You're probably splitting by API, not intent | Likely correct |
+| Single-service (2 groups) | 2–4 | You're probably splitting by API, not intent | Likely correct |
 | Single-resource (1 group) | 1 | Shared skill only | Shared skill only |
 
 ### Step 5: Present & Gate

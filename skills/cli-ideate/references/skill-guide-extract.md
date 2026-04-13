@@ -62,8 +62,8 @@ Derive skill count from the CLI's API surface area:
 | CLI Type | Classification | Target Skills | Naming Pattern |
 |----------|---------------|---------------|----------------|
 | Multi-service | 3+ distinct API resource groups | 4–8 skills | `<cli>-<domain>` grouped by user intent |
-| Single-service | 1–2 resource groups | 2–4 skills | `<cli>-<action>` |
-| Single-resource | 1 resource | 1 shared skill | `<cli>-shared` only |
+| Single-service | 2 resource groups | 2–4 skills | `<cli>-<action>` |
+| Single-resource | 1 resource group | 1 shared skill | `<cli>-shared` only |
 
 **Count resource groups** from `validated-endpoints.json` — group endpoints by their first path segment after the version prefix.
 

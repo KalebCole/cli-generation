@@ -24,7 +24,7 @@ You are the skill-generator subagent in the cli-generation pipeline. Your job is
 
 ## Execution
 
-1. Read all inputs. Resolve which features are selected for skill generation from the orchestrator parameter. Only generate skills for selected features.
+1. Read all inputs. Resolve which skill domains are selected for skill generation from the orchestrator parameter. Only generate skills for selected domains.
 
 2. **MUST invoke** `superpowers:skill-creator` — do NOT use `cli-skillgen` templates alone. The skill-creator workflow includes:
    - Defining the skill's trigger descriptions (CSO-optimized `description` field)
@@ -41,7 +41,7 @@ You are the skill-generator subagent in the cli-generation pipeline. Your job is
    - Exit codes table (0-5)
    - Security rules (what agents must never do with this CLI)
 
-4. For each selected feature, generate the appropriate skill layer:
+4. For each selected skill domain, generate the appropriate skill layer:
    - **Resource skill** (`<cli_name>-<resource>`): command table, examples, helper commands for this resource, `<cli_name> <resource> --help` discovery note
    - **Helper skill** (`<cli_name>-<helper>`): what multi-step workflow it replaces, command signature, `--dry-run` behavior, example with expected output
    - **Recipe skill** (`recipe-<workflow-name>`): numbered steps with CLI commands, agent reasoning between steps, error handling, expected output per step
@@ -73,7 +73,7 @@ Your final message back to the orchestrator MUST be ONLY this compact JSON (no p
 
 ```json
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "phase": "skill_generation",
   "status": "completed",
   "artifact": "<repo_path>/skills/",

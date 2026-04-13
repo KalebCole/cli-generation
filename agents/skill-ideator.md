@@ -29,8 +29,8 @@ A skill is a SKILL.md file that teaches an AI agent **when and how** to compose 
 
 2. **Classify the CLI type** by counting distinct API resource groups in `validated-endpoints.json` (group endpoints by first path segment after version prefix):
    - 3+ resource groups → **multi-service** (target 4–8 skill domains)
-   - 1–2 resource groups → **single-service** (target 2–4 skill domains)
-   - 1 resource → **single-resource** (target 1 shared skill)
+   - 2 resource groups → **single-service** (target 2–4 skill domains)
+   - 1 resource group → **single-resource** (target 1 shared skill)
 
 3. Invoke the `cli-ideate` skill. Provide it with:
    - All context from step 1

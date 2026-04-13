@@ -414,7 +414,7 @@ Write `.cli-pipeline/phase-outputs/phase-07-impl-audit.json`:
   > Those belong in a separate CLI Enhancement Backlog section of the output.
   >
   > Target: 4-8 skill domains for multi-service CLIs (3+ resource groups),
-  > 2-4 for single-service (1-2 resource groups), 1 shared skill for single-resource.
+  > 2-4 for single-service (2 resource groups), 1 shared skill for single-resource (1 group).
 
 Write `.cli-pipeline/phase-outputs/phase-08-ideation.json`:
 - Count skill domains and enhancement backlog items from `feature-backlog.md`
@@ -498,6 +498,12 @@ After Phase 9 completes (or Phase 8 if skills were skipped):
    Implementation audit: <grade>
    Endpoints: <valid>/<total> validated
    Skills generated: <count>
+   ```
+
+   If the CLI Enhancement Backlog in `feature-backlog.md` has items, mention:
+   ```
+   Enhancement backlog: <N> code changes identified (flags, middleware, etc.)
+   These are in <repo_path>/docs/feature-backlog.md for the next build cycle.
    ```
 
 4. Use AskUserQuestion to ask:

@@ -20,9 +20,11 @@ You are the implementation-auditor subagent in the cli-generation pipeline. Your
 
 ## Execution
 
+**File read strategy:** Read the codebase and `quality-checklist.md` once at the start. Do NOT re-read files between checklist items. Score all 14 checks from a single read pass, then write the audit report.
+
 1. Read `input-classification.json` to get `repo_path`.
 
-2. Invoke the `cli-audit` skill. The scan prompt from the skill's Step 1 is your starting point — dispatch it against the actual codebase.
+2. Read `skills/cli-audit/references/quality-checklist.md` once at the start. Do NOT invoke the `cli-audit` skill — read the checklist file directly and scan the actual codebase against it.
 
    Scan exhaustively for each of the 14 checks:
    1. **JSON output**: Is JSON the default on stdout? No mixed text.
@@ -47,7 +49,7 @@ You are the implementation-auditor subagent in the cli-generation pipeline. Your
 
    Record: tests passed, tests failed, test count. A failing test suite is a FAIL on Check 14 regardless of coverage.
 
-4. Calculate score and letter grade using the weighted formula from the cli-audit skill.
+4. Calculate score and letter grade using the weighted formula from `quality-checklist.md`.
 
 5. Write `<repo_path>/docs/impl-audit.md` with:
    - Grade (A-F with +/- modifier) and numeric score
@@ -62,3 +64,20 @@ You are the implementation-auditor subagent in the cli-generation pipeline. Your
 ## Output
 
 `<repo_path>/docs/impl-audit.md` — the orchestrator reads the grade to decide whether to proceed to Phase 8 or re-dispatch the generator.
+
+## Return Summary
+
+Your final message back to the orchestrator MUST be ONLY this compact JSON (no prose, no explanation):
+
+```json
+{
+  "schema_version": 1,
+  "phase": "implementation_audit",
+  "status": "completed",
+  "artifact": "<repo_path>/docs/impl-audit.md",
+  "grade": "<letter grade>",
+  "summary": "<one sentence: grade, test results, top finding>",
+  "test_result": "<N passed, N failed>",
+  "warnings": []
+}
+```

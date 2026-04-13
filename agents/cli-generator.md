@@ -11,6 +11,7 @@ tools:
   - Bash
   - Glob
   - Grep
+  - Agent
 ---
 
 You are the cli-generator subagent in the cli-generation pipeline. Your job is to write the full CLI implementation using Test-Driven Development. This is the largest phase — you produce working, tested code, not scaffolding.
@@ -50,21 +51,65 @@ If this agent receives an `audit-findings` parameter (dispatched by orchestrator
    - `tests/` (Pester test files)
    - `.env.example`
 
-4. Implement in this order:
+4. Implement **shared modules first** (Phase A — sequential, in this agent):
    1. **Core lib**: HTTP client (retry, pagination, timeouts), auth module (credential chain), output formatter (JSON/table/yaml/csv), error types
-   2. **Base commands**: CRUD for every validated (non-`invalid`/`unreachable`) endpoint — organized by resource using `tags` from validated-endpoints.json
-   3. **Helpers**: `+` prefixed helper commands from the architecture document
-   4. **Auth commands**: login, logout, status, and whoami (per architecture.md design)
+   2. **Auth commands**: login, logout, status, and whoami (per architecture.md design)
+   3. Run all tests to verify shared modules work.
 
-5. For each resource command, map endpoint data from `validated-endpoints.json`:
-   - Use `operation_id` as the command name if available
-   - Generate flags from `params.query`, `params.path`, and `request_body` fields
-   - Wire output to the JSON envelope format (`{ status, data, metadata }`)
-   - Apply auth from `auth-profile.json` credential chain
+5. **Decide parallelization strategy:**
+   - Count the number of resource groups in `validated-endpoints.json` (using `tags`).
+   - If **≤ 5 resource groups**: implement all commands sequentially in this agent (skip to step 7).
+   - If **> 5 resource groups**: proceed to step 6 for parallel dispatch.
 
-6. Every write/delete command must have `--dry-run` and `--yes`/`--force` guards (per architecture.md).
+6. **Parallel resource dispatch** (Phase B — only for > 5 resource groups):
 
-7. **MUST invoke** `superpowers:verification-before-completion` before declaring done:
+   Group endpoints by their `tags` field from `validated-endpoints.json`. For each resource group, dispatch a subagent using the Agent tool:
+
+   ```
+   Agent({
+     description: "Generate <resource> commands",
+     prompt: "You are generating CLI commands for the <resource> resource group.
+
+   Read these files for context:
+   - <repo_path>/docs/architecture.md (the CLI design — find the <resource> section)
+   - .cli-pipeline/validated-endpoints.json (find endpoints with tag '<resource>')
+   - .cli-pipeline/input-classification.json (tech_stack, cli_name)
+   - <repo_path>/src/<cli_name>/client.py (or equivalent — the shared HTTP client)
+   - <repo_path>/src/<cli_name>/auth.py (or equivalent — the shared auth module)
+   - <repo_path>/src/<cli_name>/types.py (or equivalent — shared types)
+   - <repo_path>/src/<cli_name>/errors.py (or equivalent — shared error types)
+
+   Use superpowers:test-driven-development.
+
+   Generate ONLY:
+   - <repo_path>/src/<cli_name>/commands/<resource>_cmd.py (or .ts/.ps1)
+   - <repo_path>/tests/test_commands/test_<resource>_cmd.py (or equivalent)
+
+   For each endpoint with tag '<resource>':
+   - Map operation_id to command name
+   - Generate flags from params.query, params.path, and request_body
+   - Wire output to JSON envelope format ({ status, data, metadata })
+   - Every write/delete command gets --dry-run and --yes/--force guards
+   - Import shared modules from the lib/ directory
+
+   Run tests after implementation. All tests must pass.
+
+   Return ONLY this JSON as your final message:
+   {\"resource\": \"<resource>\", \"commands\": <N>, \"tests\": <N>, \"status\": \"passed\"}"
+   })
+   ```
+
+   Dispatch up to 4 resource groups in parallel (to stay within reasonable concurrent agent limits). Wait for all to complete before dispatching the next batch.
+
+7. **Sequential resource implementation** (only if ≤ 5 resource groups or audit-fix mode):
+
+   For each resource group, implement commands sequentially following TDD:
+   - Map `operation_id` to command name
+   - Generate flags from `params.query`, `params.path`, and `request_body`
+   - Wire output to JSON envelope format
+   - Every write/delete command gets `--dry-run` and `--yes`/`--force` guards
+
+8. **MUST invoke** `superpowers:verification-before-completion` before declaring done:
    - All tests pass
    - CLI builds and produces a runnable binary (or importable module)
    - `--help` works on every command

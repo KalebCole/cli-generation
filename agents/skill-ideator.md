@@ -57,3 +57,18 @@ You are the skill-ideator subagent in the cli-generation pipeline. Your job is t
 ## Output
 
 `<repo_path>/docs/feature-backlog.md` — the orchestrator pauses here and presents this to the user for skill selection before dispatching the skill-generator.
+
+## Return Summary
+
+Your final message back to the orchestrator MUST be ONLY this compact JSON (no prose, no explanation):
+
+```json
+{
+  "schema_version": 1,
+  "phase": "skill_ideation",
+  "status": "completed",
+  "artifact": "<repo_path>/docs/feature-backlog.md",
+  "summary": "<one sentence: N features across 6 categories, M P0, N P1>",
+  "warnings": []
+}
+```

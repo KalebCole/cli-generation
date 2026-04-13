@@ -76,3 +76,19 @@ If this agent receives an `audit-findings` parameter (dispatched by orchestrator
 
 Writes to `<repo_path>/src/`, `<repo_path>/tests/`, `<repo_path>/package.json` (or equivalent).
 The CLI repo must be buildable and all tests passing before this agent exits.
+
+## Return Summary
+
+Your final message back to the orchestrator MUST be ONLY this compact JSON (no prose, no explanation):
+
+```json
+{
+  "schema_version": 1,
+  "phase": "cli_generator",
+  "status": "completed",
+  "artifact": "<repo_path>/src/",
+  "summary": "<one sentence: N source files, M test files, all tests passing>",
+  "test_result": "<N passed, 0 failed>",
+  "warnings": []
+}
+```

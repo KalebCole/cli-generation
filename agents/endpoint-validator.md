@@ -61,3 +61,18 @@ You are the endpoint-validator subagent in the cli-generation pipeline. Your job
 ## Output
 
 `.cli-pipeline/validated-endpoints.json` — required before Phase 4 (CLI architect) can proceed.
+
+## Return Summary
+
+Your final message back to the orchestrator MUST be ONLY this compact JSON (no prose, no explanation):
+
+```json
+{
+  "schema_version": 1,
+  "phase": "endpoint_validation",
+  "status": "completed",
+  "artifact": ".cli-pipeline/validated-endpoints.json",
+  "summary": "Validated: <N> valid, <N> invalid, <N> unreachable, <N> auth_blocked, <N> skipped",
+  "warnings": []
+}
+```

@@ -64,3 +64,22 @@ Read `.cli-pipeline/input-classification.json` to understand:
 ## Output
 
 `.cli-pipeline/auth-profile.json` — required before the pipeline can proceed to Phase 2.
+
+## Return Summary
+
+Your final message back to the orchestrator MUST be ONLY this compact JSON (no prose, no explanation):
+
+```json
+{
+  "schema_version": 1,
+  "phase": "auth_recon",
+  "status": "completed",
+  "artifact": ".cli-pipeline/auth-profile.json",
+  "summary": "<one sentence: auth type discovered and credential source>",
+  "warnings": []
+}
+```
+
+If auth was blocked and required user input, set status to `"completed_with_interaction"`.
+If auth discovery failed entirely, set status to `"failed"` and add `"error": "<reason>"`.
+Add any non-fatal issues to the `warnings` array (e.g., `"OAuth token expired during discovery"`).

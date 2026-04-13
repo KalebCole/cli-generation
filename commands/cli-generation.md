@@ -210,7 +210,6 @@ For every phase (1-9), follow this exact sequence:
   "schema_version": 1,
   "phase": "<phase_name>",
   "timestamp": "<ISO 8601>",
-  "source_artifacts": ["<list of input files this phase read>"],
   "outputs": {}
 }
 ```
@@ -459,6 +458,10 @@ After the agent completes:
   > <If user added custom ideas, list them here>
   > Write skill files to `<repo_path>/skills/`.
   > Also read the relevant `.cli-pipeline/phase-outputs/phase-NN-*.json` files for compact summaries of prior phases. Use these for context instead of re-reading large artifact files when possible.
+
+Write `.cli-pipeline/phase-outputs/phase-09-skills.json`:
+- Count directories in `<repo_path>/skills/` using Glob
+- `"outputs": { "skill_count": N, "skills": ["<skill1>", "<skill2>"] }`
 
 ---
 

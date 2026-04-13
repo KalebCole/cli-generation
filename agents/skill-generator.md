@@ -66,3 +66,18 @@ You are the skill-generator subagent in the cli-generation pipeline. Your job is
 ## Output
 
 `<repo_path>/skills/` — directory populated with all selected skill files. This is the final phase of the pipeline.
+
+## Return Summary
+
+Your final message back to the orchestrator MUST be ONLY this compact JSON (no prose, no explanation):
+
+```json
+{
+  "schema_version": 1,
+  "phase": "skill_generation",
+  "status": "completed",
+  "artifact": "<repo_path>/skills/",
+  "summary": "<one sentence: N skills generated (shared + M resource + N helper + P recipe)>",
+  "warnings": []
+}
+```

@@ -101,13 +101,17 @@ If this agent receives an `audit-findings` parameter (dispatched by orchestrator
 
    Dispatch up to 4 resource groups in parallel (to stay within reasonable concurrent agent limits). Wait for all to complete before dispatching the next batch.
 
-7. **Sequential resource implementation** (only if ≤ 5 resource groups or audit-fix mode):
+   If any subagent returns `"status": "failed"` or does not return the expected JSON, immediately halt parallel dispatch, log which resource group failed, and fall back to the sequential path (step 7) for all remaining resource groups including the failed one.
+
+7. **Sequential resource implementation** (only if ≤ 5 resource groups, audit-fix mode, or parallel dispatch fallback):
 
    For each resource group, implement commands sequentially following TDD:
    - Map `operation_id` to command name
    - Generate flags from `params.query`, `params.path`, and `request_body`
    - Wire output to JSON envelope format
    - Every write/delete command gets `--dry-run` and `--yes`/`--force` guards
+
+   After all resource commands are implemented, implement helper commands (`+` prefixed helpers from `architecture.md`).
 
 8. **MUST invoke** `superpowers:verification-before-completion` before declaring done:
    - All tests pass

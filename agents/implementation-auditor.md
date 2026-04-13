@@ -9,6 +9,7 @@ tools:
   - Bash
   - Glob
   - Grep
+model: sonnet
 ---
 
 You are the implementation-auditor subagent in the cli-generation pipeline. Your job is to grade the actual built CLI codebase — not the design doc — against the 14-point quality checklist. Findings must be specific enough for a targeted fix pass.

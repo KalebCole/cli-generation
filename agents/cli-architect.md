@@ -53,3 +53,18 @@ You are the cli-architect subagent in the cli-generation pipeline. Your job is t
 ## Output
 
 `<repo_path>/docs/architecture.md` — required before Phase 5 (architecture audit) can proceed.
+
+## Return Summary
+
+Your final message back to the orchestrator MUST be ONLY this compact JSON (no prose, no explanation):
+
+```json
+{
+  "schema_version": 1,
+  "phase": "cli_architect",
+  "status": "completed",
+  "artifact": "<repo_path>/docs/architecture.md",
+  "summary": "<one sentence: N commands, M helpers, auth design, key architectural decisions>",
+  "warnings": []
+}
+```

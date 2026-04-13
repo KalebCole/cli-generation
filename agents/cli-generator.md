@@ -11,6 +11,7 @@ tools:
   - Bash
   - Glob
   - Grep
+  - Agent
 ---
 
 You are the cli-generator subagent in the cli-generation pipeline. Your job is to write the full CLI implementation using Test-Driven Development. This is the largest phase — you produce working, tested code, not scaffolding.
@@ -50,21 +51,70 @@ If this agent receives an `audit-findings` parameter (dispatched by orchestrator
    - `tests/` (Pester test files)
    - `.env.example`
 
-4. Implement in this order:
+4. Implement **shared modules first** (Phase A — sequential, in this agent):
    1. **Core lib**: HTTP client (retry, pagination, timeouts), auth module (credential chain), output formatter (JSON/table/yaml/csv), error types
-   2. **Base commands**: CRUD for every validated (non-`invalid`/`unreachable`) endpoint — organized by resource using `tags` from validated-endpoints.json
-   3. **Helpers**: `+` prefixed helper commands from the architecture document
-   4. **Auth commands**: login, logout, status, and whoami (per architecture.md design)
+   2. **Auth commands**: login, logout, status, and whoami (per architecture.md design)
+   3. Run all tests to verify shared modules work.
 
-5. For each resource command, map endpoint data from `validated-endpoints.json`:
-   - Use `operation_id` as the command name if available
-   - Generate flags from `params.query`, `params.path`, and `request_body` fields
-   - Wire output to the JSON envelope format (`{ status, data, metadata }`)
-   - Apply auth from `auth-profile.json` credential chain
+5. **Decide parallelization strategy:**
+   - If this is an **audit-fix retry** (dispatched with `audit-findings` parameter), skip to step 7 regardless of resource count. Audit fixes must be surgical, not regenerative.
+   - Count the number of unique resource groups by collecting all distinct values from the `tags` field across all endpoints in `validated-endpoints.json`. If `tags` is an array, flatten and deduplicate.
+   - If **≤ 5 resource groups**: implement all commands sequentially in this agent (skip to step 7).
+   - If **> 5 resource groups**: proceed to step 6 for parallel dispatch.
 
-6. Every write/delete command must have `--dry-run` and `--yes`/`--force` guards (per architecture.md).
+6. **Parallel resource dispatch** (Phase B — only for > 5 resource groups):
 
-7. **MUST invoke** `superpowers:verification-before-completion` before declaring done:
+   Group endpoints by their `tags` field from `validated-endpoints.json`. For each resource group, dispatch a subagent using the Agent tool:
+
+   ```
+   Agent({
+     description: "Generate <resource> commands",
+     prompt: "You are generating CLI commands for the <resource> resource group.
+
+   Read these files for context:
+   - <repo_path>/docs/architecture.md (the CLI design — find the <resource> section)
+   - .cli-pipeline/validated-endpoints.json (find endpoints with tag '<resource>')
+   - .cli-pipeline/input-classification.json (tech_stack, cli_name)
+   - The shared modules in the lib/ directory (client, auth, types, errors — read input-classification.json for tech_stack to find the right file extensions)
+
+   Use superpowers:test-driven-development.
+
+   IMPORTANT: Read tech_stack from input-classification.json to determine file paths:
+   - Python: src/<cli_name>/commands/<resource>_cmd.py + tests/test_commands/test_<resource>_cmd.py
+   - TypeScript: src/commands/<resource>.ts + tests/commands/<resource>.test.ts
+   - PowerShell: commands/<resource>.ps1 + tests/<resource>.Tests.ps1
+
+   For each endpoint with tag '<resource>':
+   - Map operation_id to command name
+   - Generate flags from params.query, params.path, and request_body
+   - Wire output to JSON envelope format ({ status, data, metadata })
+   - Every write/delete command gets --dry-run and --yes/--force guards
+   - Import shared modules from the lib/ directory
+
+   Run tests after implementation. All tests must pass.
+
+   Return ONLY this JSON as your final message:
+   {\"resource\": \"<resource>\", \"commands\": <N>, \"tests\": <N>, \"status\": \"passed\"}
+   If tests fail or generation errors occur, return:
+   {\"resource\": \"<resource>\", \"commands\": <N>, \"tests\": <N>, \"status\": \"failed\", \"error\": \"<reason>\"}"
+   })
+   ```
+
+   Dispatch up to 4 resource groups in parallel (to stay within reasonable concurrent agent limits). Wait for all to complete before dispatching the next batch.
+
+   **Error handling:** If any subagent returns `"status": "failed"` or does not return the expected JSON, immediately halt parallel dispatch. Fall back to sequential mode (step 7) for the failed resource group and all remaining undispatched groups.
+
+7. **Sequential resource implementation** (only if ≤ 5 resource groups, audit-fix mode, or parallel dispatch fallback):
+
+   For each resource group, implement commands sequentially following TDD:
+   - Map `operation_id` to command name
+   - Generate flags from `params.query`, `params.path`, and `request_body`
+   - Wire output to JSON envelope format
+   - Every write/delete command gets `--dry-run` and `--yes`/`--force` guards
+
+   After all resource commands are implemented, implement helper commands (`+` prefixed helpers from `architecture.md`).
+
+8. **MUST invoke** `superpowers:verification-before-completion` before declaring done:
    - All tests pass
    - CLI builds and produces a runnable binary (or importable module)
    - `--help` works on every command
@@ -76,3 +126,19 @@ If this agent receives an `audit-findings` parameter (dispatched by orchestrator
 
 Writes to `<repo_path>/src/`, `<repo_path>/tests/`, `<repo_path>/package.json` (or equivalent).
 The CLI repo must be buildable and all tests passing before this agent exits.
+
+## Return Summary
+
+Your final message back to the orchestrator MUST be ONLY this compact JSON (no prose, no explanation):
+
+```json
+{
+  "schema_version": 1,
+  "phase": "cli_generator",
+  "status": "completed",
+  "artifact": "<repo_path>/src/",
+  "summary": "<one sentence: N source files, M test files, all tests passing>",
+  "test_result": "<N passed, 0 failed>",
+  "warnings": []
+}
+```

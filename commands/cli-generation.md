@@ -171,6 +171,16 @@ Write `.cli-pipeline/pipeline-status.json`:
 }
 ```
 
+### Step 0.7b: Create Phase Outputs Directory
+
+Create the directory for immutable per-phase output manifests:
+
+```bash
+mkdir -p .cli-pipeline/phase-outputs
+```
+
+Each phase will write a compact, immutable JSON manifest here after completion. Later phases read these ~200-500 token summaries instead of re-parsing large artifact files.
+
 ### Step 0.8: Create Visual Task List
 
 Create tasks for visual progress tracking (see Progress Tracking section). Use TaskCreate to create one task per phase with the subjects and activeForm labels from the table above. Each TaskCreate call returns a task ID — keep these in memory as a phase-to-taskId map (e.g., `phase_tasks["1_auth_recon"] = "task-3"`). Use these IDs for all subsequent TaskUpdate calls.
@@ -193,6 +203,19 @@ For every phase (1-9), follow this exact sequence:
    - The `repo_path` value
    - Any phase-specific parameters (listed per-phase below)
 3. **Verify output**: After the agent returns, confirm the expected output file exists using Glob or Read (first few lines only — do NOT load full content into orchestrator context).
+3b. **Write phase output manifest**: Read only the minimal fields needed from the phase's primary artifact (first 10-20 lines). Write a manifest to `.cli-pipeline/phase-outputs/phase-NN-<name>.json`:
+
+```json
+{
+  "schema_version": 1,
+  "phase": "<phase_name>",
+  "timestamp": "<ISO 8601>",
+  "outputs": {}
+}
+```
+
+The `outputs` object contains phase-specific summary fields (defined per-phase below). For retryable phases (5, 7), the manifest is overwritten on each iteration — the latest version is always the current truth.
+
 4. **Update status**: Set the phase to `"completed"` with `"completed_at": "<ISO-8601>"` in `pipeline-status.json`. Also `TaskUpdate` the corresponding task to `completed` (skip if TaskCreate was unavailable at pipeline start).
 
 If an agent fails (output file missing or agent reports error), set the phase status to `"failed"` with `"error": "<brief description>"` and stop the pipeline. Report the failure to the user.
@@ -211,6 +234,10 @@ If an agent fails (output file missing or agent reports error), set the phase st
 
 After the agent completes, check if `.cli-pipeline/auth-blocked.json` exists. If it does, the agent already prompted the user via AskUserQuestion. Verify that `.cli-pipeline/auth-profile.json` was written after the user interaction. If auth-profile.json is still missing, stop the pipeline and report the auth failure.
 
+Write `.cli-pipeline/phase-outputs/phase-01-auth.json`:
+- Read `auth_type`, `credential_source`, and `discovery_method` from `auth-profile.json` (first 10 lines only)
+- `"outputs": { "auth_type": "<type>", "credential_source": "<source>", "discovery_method": "<method>" }`
+
 ---
 
 ## Phase 2: API Recon
@@ -223,6 +250,10 @@ After the agent completes, check if `.cli-pipeline/auth-blocked.json` exists. If
   > Read `.cli-pipeline/input-classification.json` and `.cli-pipeline/auth-profile.json`.
   > Write your output to `.cli-pipeline/endpoints.json`.
 
+Write `.cli-pipeline/phase-outputs/phase-02-api.json`:
+- Read `coverage` and `service` fields from `endpoints.json` (do NOT load the full endpoint list)
+- `"outputs": { "endpoint_count": N, "base_url": "<url>", "spec_source": "<source>" }`
+
 ---
 
 ## Phase 3: Endpoint Validation
@@ -234,6 +265,10 @@ After the agent completes, check if `.cli-pipeline/auth-blocked.json` exists. If
   > You are running Phase 3 (Endpoint Validation) of the cli-generation pipeline.
   > Read `.cli-pipeline/auth-profile.json` and `.cli-pipeline/endpoints.json`.
   > Write your output to `.cli-pipeline/validated-endpoints.json`.
+
+Write `.cli-pipeline/phase-outputs/phase-03-validation.json`:
+- Read only the `summary` block from `validated-endpoints.json`
+- `"outputs": { "valid": N, "invalid": N, "unreachable": N, "auth_blocked": N, "skipped_destructive": N }`
 
 ---
 
@@ -248,11 +283,16 @@ After the agent completes, check if `.cli-pipeline/auth-blocked.json` exists. If
   > The CLI repo is at: `<repo_path>`
   > Write your output to `<repo_path>/docs/architecture.md`.
   > Create the docs/ directory if it doesn't exist.
+  > Also read the relevant `.cli-pipeline/phase-outputs/phase-NN-*.json` files for compact summaries of prior phases. Use these for context instead of re-reading large artifact files when possible.
 
 If this is a **retry after Phase 5 audit**, append to the prompt:
   > This is iteration <N> after an architecture audit graded < B.
   > Read the audit findings at `<repo_path>/docs/arch-audit.md` and make targeted revisions to `<repo_path>/docs/architecture.md`.
   > Only fix what the audit identified — do not redesign from scratch.
+
+Write `.cli-pipeline/phase-outputs/phase-04-architect.json`:
+- Read first 30 lines of `architecture.md` to extract command count and structure
+- `"outputs": { "command_count": N, "helper_count": N, "resource_groups": ["<group1>", "<group2>"] }`
 
 ---
 
@@ -266,6 +306,7 @@ If this is a **retry after Phase 5 audit**, append to the prompt:
   > Read `.cli-pipeline/input-classification.json` for `repo_path`.
   > Read `<repo_path>/docs/architecture.md`.
   > Write your audit to `<repo_path>/docs/arch-audit.md`.
+  > Also read the relevant `.cli-pipeline/phase-outputs/phase-NN-*.json` files for compact summaries of prior phases. Use these for context instead of re-reading large artifact files when possible.
 
 ### Loop Logic
 
@@ -287,6 +328,10 @@ After the agent completes:
 **If grade < B AND iterations >= 2:** Mark Phase 5 completed with a warning. Log:
   > Architecture audit grade is <grade> after 2 iterations. Proceeding with warnings.
 
+Write `.cli-pipeline/phase-outputs/phase-05-arch-audit.json`:
+- Read first 5 lines of `arch-audit.md` for grade
+- `"outputs": { "grade": "<letter>", "score": N, "iterations": N }`
+
 ---
 
 ## Phase 6: CLI Generator
@@ -300,11 +345,16 @@ After the agent completes:
   > The CLI repo is at: `<repo_path>`
   > The tech stack is: `<tech_stack>` (from input-classification.json)
   > Generate the full CLI using TDD. Write source to `<repo_path>/src/`, tests to `<repo_path>/tests/`.
+  > Also read the relevant `.cli-pipeline/phase-outputs/phase-NN-*.json` files for compact summaries of prior phases. Use these for context instead of re-reading large artifact files when possible.
 
 If this is a **retry after Phase 7 audit**, append to the prompt:
   > This is iteration <N> after an implementation audit graded < B.
   > Read the audit findings at `<repo_path>/docs/impl-audit.md` and make targeted fixes.
   > Do NOT regenerate — only fix what the audit identified.
+
+Write `.cli-pipeline/phase-outputs/phase-06-generator.json`:
+- Count files in `src/` and `tests/` using Glob
+- `"outputs": { "source_files": N, "test_files": N, "tests_passed": N }`
 
 ---
 
@@ -318,6 +368,7 @@ If this is a **retry after Phase 7 audit**, append to the prompt:
   > Read `.cli-pipeline/input-classification.json` for `repo_path`.
   > Audit the CLI codebase at `<repo_path>/`.
   > Write your audit to `<repo_path>/docs/impl-audit.md`.
+  > Also read the relevant `.cli-pipeline/phase-outputs/phase-NN-*.json` files for compact summaries of prior phases. Use these for context instead of re-reading large artifact files when possible.
 
 ### Loop Logic
 
@@ -336,6 +387,10 @@ Same pattern as Phase 5:
 
 **If grade < B AND iterations >= 2:** Mark Phase 7 completed with a warning.
 
+Write `.cli-pipeline/phase-outputs/phase-07-impl-audit.json`:
+- Read first 10 lines of `impl-audit.md` for grade and test results
+- `"outputs": { "grade": "<letter>", "score": N, "tests_passed": N, "tests_failed": N, "iterations": N }`
+
 ---
 
 ## Phase 8: Skill Ideation (with Pause)
@@ -348,6 +403,11 @@ Same pattern as Phase 5:
   > Read `.cli-pipeline/input-classification.json` for `repo_path` and `cli_name`.
   > Read `.cli-pipeline/validated-endpoints.json`, `<repo_path>/docs/architecture.md`, and `<repo_path>/docs/impl-audit.md`.
   > Write your output to `<repo_path>/docs/feature-backlog.md`.
+  > Also read the relevant `.cli-pipeline/phase-outputs/phase-NN-*.json` files for compact summaries of prior phases. Use these for context instead of re-reading large artifact files when possible.
+
+Write `.cli-pipeline/phase-outputs/phase-08-ideation.json`:
+- Count features by tier from `feature-backlog.md`
+- `"outputs": { "total_features": N, "p0_count": N, "p1_count": N }`
 
 ### Pause: User Skill Selection
 
@@ -397,6 +457,11 @@ After the agent completes:
   > Generate skills for these selected features: <comma-separated feature IDs and titles>
   > <If user added custom ideas, list them here>
   > Write skill files to `<repo_path>/skills/`.
+  > Also read the relevant `.cli-pipeline/phase-outputs/phase-NN-*.json` files for compact summaries of prior phases. Use these for context instead of re-reading large artifact files when possible.
+
+Write `.cli-pipeline/phase-outputs/phase-09-skills.json`:
+- Count directories in `<repo_path>/skills/` using Glob
+- `"outputs": { "skill_count": N, "skills": ["<skill1>", "<skill2>"] }`
 
 ---
 

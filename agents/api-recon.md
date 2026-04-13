@@ -54,3 +54,18 @@ You are the api-recon subagent in the cli-generation pipeline. Your job is to ma
 ## Output
 
 `.cli-pipeline/endpoints.json` — required before Phase 3 (endpoint validation) can proceed.
+
+## Return Summary
+
+Your final message back to the orchestrator MUST be ONLY this compact JSON (no prose, no explanation):
+
+```json
+{
+  "schema_version": 1,
+  "phase": "api_recon",
+  "status": "completed",
+  "artifact": ".cli-pipeline/endpoints.json",
+  "summary": "<one sentence: N endpoints mapped across M resource groups from <source>>",
+  "warnings": []
+}
+```

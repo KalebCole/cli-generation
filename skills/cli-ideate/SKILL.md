@@ -129,8 +129,8 @@ CLI type: {cli_type} | Target: {target_count} skills
 ### P0 — Generate First
 | ID | Skill Name | Intent Cluster | Commands Covered | Draft Trigger | Score |
 |----|------------|----------------|------------------|---------------|-------|
-| 1 | garmin-shared | — | all | Auth, flags, output format | 25 |
-| 2 | garmin-health | How's my body? | sleep, hr, stress, spo2, weight | Use when checking body metrics | 20 |
+| 1 | gws-shared | — | all | Auth, flags, output format | 25 |
+| 2 | gws-gmail | "Do something with email" | send, list, reply, label, archive | Use when working with Gmail | 20 |
 ...
 
 ### P1 — Generate Next
@@ -185,7 +185,7 @@ CLI type: {cli_type} | Target: {target_count} skills
 ## Common Mistakes
 
 - **Producing 30+ features instead of 4-8 skill domains.** You're ideating code changes, not skills. A skill is a SKILL.md file — not a flag, cache layer, or formatter.
-- **One skill per API resource group.** If you have `garmin-sleep`, `garmin-heartrate`, `garmin-stress` as separate skills, you're mirroring API structure. Group by intent: `garmin-health` covers all body metrics.
+- **One skill per API resource group.** If you have `gws-gmail-list`, `gws-gmail-send`, `gws-gmail-reply` as separate skills, you're mirroring API structure. Group by service/intent: `gws-gmail` covers all email actions.
 - **Code changes in the skill list.** "Response Caching", "--output FILE", "Quiet Mode" are code changes, not skills. Route them to the CLI Enhancement Backlog.
 - **Missing the shared skill.** Every CLI needs `<cli>-shared` covering auth, flags, output format. It's always P0.
 - **Ignoring the skill guide rules.** Read `references/skill-guide-extract.md` before brainstorming. It has sizing, naming, and counting constraints.

@@ -180,7 +180,7 @@ metadata:
 **Shared skill contents:**
 | Section | What it covers | Example |
 |---------|---------------|---------|
-| Installation | How to install and configure | `pip install garmin-cli` |
+| Installation | How to install and configure | `bun install -g gws-cli` |
 | Auth | Credential precedence chain | env var → config file → interactive |
 | Global flags | Flags available on every command | `--format json/table`, `--yes` |
 | Output format | JSON envelope schema | `{ "status": "ok", "data": {...} }` |

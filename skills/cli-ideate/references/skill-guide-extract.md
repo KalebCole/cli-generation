@@ -6,7 +6,7 @@ Key rules for ideating CLI skills. Sourced from the Anthropic skill guide and su
 
 A SKILL.md file that teaches an AI agent **when and how** to compose CLI commands for a specific workflow domain. A skill is agent instructions — not code, not a CLI flag, not middleware.
 
-**Skill:** "Here's how to check your body metrics using garmin-cli" → SKILL.md with commands, examples, triggers
+**Skill:** "Here's how to manage Google Drive files using gws-cli" → SKILL.md with commands, examples, triggers
 **NOT a skill:** "Add response caching to the HTTP client" → code change to the CLI itself
 
 ### Litmus Test
@@ -28,8 +28,8 @@ Kebab-case, always prefixed with the CLI name:
 
 | Pattern | When to use | Example |
 |---------|-------------|---------|
-| `<cli>-shared` | Auth, flags, output format — ONE per CLI | `garmin-shared` |
-| `<cli>-<domain>` | Domain grouped by user intent | `garmin-health` |
+| `<cli>-shared` | Auth, flags, output format — ONE per CLI | `gws-shared` |
+| `<cli>-<domain>` | Domain grouped by user intent | `gws-drive` |
 | `recipe-<workflow>` | Multi-step agent workflow with judgment | `recipe-training-review` |
 | `persona-<role>` | Role-based config bundle | `persona-athlete` |
 
@@ -44,15 +44,15 @@ Every skill needs a trigger description in frontmatter:
 Example:
 ```yaml
 description: >-
-  Query Garmin health metrics — sleep, heart rate, stress, body battery, SpO2,
-  and weight. Use when checking body stats, reviewing sleep quality, or
-  monitoring daily health trends. Triggers: "how did I sleep", "heart rate",
-  "stress level", "body battery", "weight trend".
+  Manage Google Drive files and folders — upload, download, list, share, move,
+  and search. Use when working with files in Drive, sharing documents, or
+  organizing folders. Triggers: "upload file", "share doc", "find in drive",
+  "list folder", "download".
 ```
 
 Include **negative triggers** when the skill could over-match:
 ```
-Do NOT use for: workout scheduling (use garmin-workout), race predictions (use garmin-fitness).
+Do NOT use for: editing Docs content (use gws-docs), spreadsheet operations (use gws-sheets).
 ```
 
 ## Skill Count Heuristic
@@ -69,7 +69,7 @@ Derive skill count from the CLI's API surface area:
 
 ### Examples
 
-- **garmin-cli** (15+ resource groups: sleep, heartRate, stress, activities, workouts, ...): multi-service → 5–6 skills grouped by intent
+- **gws-cli** (10+ resource groups: gmail, drive, calendar, docs, sheets, slides, tasks, people, chat, meet): multi-service → 6–8 skills grouped by service
 - **dining-cli** (2 resource groups: menus, orders): single-service → 2–3 skills
 - **uprint-cli** (1 resource: print jobs): single-resource → 1 shared skill
 
@@ -84,10 +84,10 @@ Structure each skill for progressive disclosure:
 
 Skills group commands by **how users think**, not how the API is organized.
 
-**Wrong** (API surface): one skill per API resource
-- `garmin-sleep`, `garmin-heartrate`, `garmin-stress`, `garmin-spo2`, `garmin-weight` (5 skills for related body metrics)
+**Wrong** (API surface): one skill per API endpoint
+- `gws-gmail-list`, `gws-gmail-send`, `gws-gmail-reply`, `gws-gmail-label` (4 skills for one service)
 
-**Right** (user intent): one skill per user question
-- `garmin-health` — "How's my body?" (sleep + HR + stress + SpO2 + weight in one skill)
+**Right** (user intent): one skill per service, grouped by what the user wants to accomplish
+- `gws-gmail` — "Do something with email" (list, send, reply, label, archive all in one skill)
 
 Ask: "What question is the user trying to answer?" Group all commands that answer the same question into one skill.

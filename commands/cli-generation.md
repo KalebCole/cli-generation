@@ -404,41 +404,49 @@ Write `.cli-pipeline/phase-outputs/phase-07-impl-audit.json`:
   > Read `.cli-pipeline/validated-endpoints.json`, `<repo_path>/docs/architecture.md`, and `<repo_path>/docs/impl-audit.md`.
   > Write your output to `<repo_path>/docs/feature-backlog.md`.
   > Also read the relevant `.cli-pipeline/phase-outputs/phase-NN-*.json` files for compact summaries of prior phases. Use these for context instead of re-reading large artifact files when possible.
+  >
+  > IMPORTANT: You are identifying SKILL DOMAINS — not brainstorming code changes.
+  > A skill is a SKILL.md file that teaches an AI agent when and how to compose
+  > CLI commands for a specific workflow domain. Skills cluster commands by user
+  > intent ("how's my body?" not "sleep-service + hr-service").
+  >
+  > Do NOT propose code changes (caching, new flags, middleware) as skills.
+  > Those belong in a separate CLI Enhancement Backlog section of the output.
+  >
+  > Target: 4-8 skill domains for multi-service CLIs (3+ resource groups),
+  > 2-4 for single-service (2 resource groups), 1 shared skill for single-resource (1 group).
 
 Write `.cli-pipeline/phase-outputs/phase-08-ideation.json`:
-- Count features by tier from `feature-backlog.md`
-- `"outputs": { "total_features": N, "p0_count": N, "p1_count": N }`
+- Count skill domains and enhancement backlog items from `feature-backlog.md`
+- `"outputs": { "total_skills": N, "total_enhancements": N, "p0_count": N, "p1_count": N }`
 
 ### Pause: User Skill Selection
 
 After the agent completes:
 
 1. Read `<repo_path>/docs/feature-backlog.md`.
-2. Extract the feature list with IDs, titles, categories, and priority tiers.
-3. Present the backlog to the user using AskUserQuestion with `multiSelect: true`:
+2. Extract the skill domain list with IDs, names, intent clusters, draft triggers, and priority tiers.
+3. Present the skill domains to the user using AskUserQuestion with `multiSelect: true`:
    ```
-   The skill ideator generated <N> feature ideas across 6 categories.
+   The skill ideator identified <N> skill domains for <cli_name>.
 
-   P0 (Must-have):
-     [1] <title> — <category>
-     [2] <title> — <category>
-
-   P1 (Should-have):
-     [3] <title> — <category>
-     [4] <title> — <category>
-
-   P2/P3 (Nice-to-have):
-     [5] <title> — <category>
+   Skill Domains:
+     [1] <skill-name> — <intent cluster> (P0)
+         Use when: <draft trigger>
+     [2] <skill-name> — <intent cluster> (P1)
+         Use when: <draft trigger>
      ...
 
-   Select features to generate skills for (comma-separated IDs), or:
+   CLI Enhancement Backlog: <M> code changes (routed to impl-audit, not skill generation)
+
+   Select skill domains to generate SKILL.md files for:
    - "all" to generate all
-   - "p0" to generate P0 only
-   - "p0,p1" for P0 + P1
+   - "1,2,3" for specific domains
+   - "p0" for P0 only, "p0,p1" for P0 + P1
    - Type custom skill ideas on a new line
    - "skip" to skip skill generation entirely
    ```
-4. Parse the user's response into a list of selected feature IDs and any custom additions.
+4. Parse the user's response into a list of selected skill domain IDs and any custom additions.
 5. If the user selects "skip", mark Phase 8 completed and Phase 9 as "skipped", then jump to Completion.
 6. Store the selections for the Phase 9 dispatch.
 
@@ -454,10 +462,14 @@ After the agent completes:
   > Read `.cli-pipeline/input-classification.json` for `repo_path` and `cli_name`.
   > Read `<repo_path>/docs/feature-backlog.md` and `<repo_path>/docs/architecture.md`.
   > Read the CLI source at `<repo_path>/src/` to document actual implementations.
-  > Generate skills for these selected features: <comma-separated feature IDs and titles>
+  > Generate SKILL.md files for these selected skill domains: <comma-separated domain IDs and names>
   > <If user added custom ideas, list them here>
   > Write skill files to `<repo_path>/skills/`.
   > Also read the relevant `.cli-pipeline/phase-outputs/phase-NN-*.json` files for compact summaries of prior phases. Use these for context instead of re-reading large artifact files when possible.
+  >
+  > MUST invoke `superpowers:skill-creator` before generating any SKILL.md files.
+  > Each skill must follow the naming convention: <cli>-shared, <cli>-<domain>,
+  > recipe-<workflow>, persona-<role>.
 
 Write `.cli-pipeline/phase-outputs/phase-09-skills.json`:
 - Count directories in `<repo_path>/skills/` using Glob
@@ -486,6 +498,12 @@ After Phase 9 completes (or Phase 8 if skills were skipped):
    Implementation audit: <grade>
    Endpoints: <valid>/<total> validated
    Skills generated: <count>
+   ```
+
+   If the CLI Enhancement Backlog in `feature-backlog.md` has items, mention:
+   ```
+   Enhancement backlog: <N> code changes identified (flags, middleware, etc.)
+   These are in <repo_path>/docs/feature-backlog.md for the next build cycle.
    ```
 
 4. Use AskUserQuestion to ask:

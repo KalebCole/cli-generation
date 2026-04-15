@@ -1,6 +1,13 @@
 # Feature Ideation Category Framework
 
-The 6 categories for systematic CLI feature brainstorming. Each category targets a different user need and implementation pattern.
+> **These categories are brainstorming lenses, NOT the output structure.**
+> Use them to think comprehensively about what a CLI could do. Your output
+> is organized into **skill domains** (grouped by user intent) and a
+> **CLI Enhancement Backlog** (code changes). Do not map categories 1:1
+> to skill domains — multiple categories often collapse into a single
+> skill domain when they share user intent.
+
+The 7 categories for systematic CLI skill brainstorming. Categories 1-6 inform skill domain identification. Category 7 captures code changes that are explicitly NOT skills.
 
 ## Category 1: Daily Workflows
 
@@ -157,27 +164,54 @@ metadata:
 
 ---
 
-## Category 6: Global Enhancements
+## Category 6: Shared Skills
 
-**What:** Cross-cutting improvements that benefit ALL commands and users.
+**What:** Cross-cutting concerns that apply to ALL commands — documented in the `<cli>-shared` SKILL.md.
 
-**Pattern:** New global flags, middleware, formatters, or infrastructure changes.
+**Pattern:** Auth, global flags, output format, config, error handling — everything an agent needs to know before using any specific command.
+
+**How to discover:**
+- What auth steps must happen before any command works?
+- What global flags affect every command? (`--format`, `--yes`, `--dry-run`)
+- What output envelope format do all commands share?
+- What exit codes does the CLI use?
+- What security rules must an agent follow?
+
+**Shared skill contents:**
+| Section | What it covers | Example |
+|---------|---------------|---------|
+| Installation | How to install and configure | `bun install -g gws-cli` |
+| Auth | Credential precedence chain | env var → config file → interactive |
+| Global flags | Flags available on every command | `--format json/table`, `--yes` |
+| Output format | JSON envelope schema | `{ "status": "ok", "data": {...} }` |
+| Exit codes | What each code means | 0=success, 1=error, 2=auth |
+| Security | What agents must never do | Never store tokens in skill files |
+
+**Note:** The shared skill is always P0 — all other skills depend on it.
+
+---
+
+## Category 7: CLI Enhancement Backlog
+
+**⚠️ Items in this category are NOT skills. They are code changes to the CLI itself.**
+
+**What:** Code improvements — new flags, middleware, caching, formatters, infrastructure. These do NOT become SKILL.md files. They route back to the implementation audit for the next build cycle.
+
+**Pattern:** Changes to CLI source code, not agent instructions.
 
 **How to discover:**
 - What filtering do users do AFTER getting output? (→ add a flag)
-- What context is always needed? (→ add time-awareness, location-awareness)
-- What format would make piping easier? (→ add formatters)
-- What quality gaps did the audit find? (→ fix infrastructure)
+- What middleware would improve performance? (→ caching, rate limiting)
+- What quality gaps did the audit find? (→ infrastructure fixes)
+- What config options are missing? (→ env var support)
 
-**Common global enhancements:**
-| Enhancement | Flag/Feature | What it enables |
-|-------------|-------------|-----------------|
-| Price filter | `--max-price <n>` | Budget-aware browsing |
-| Calorie filter | `--max-cal <n>` | Health-aware browsing |
-| Allergen filter | `--exclude-allergen <list>` | Safety filtering |
-| Sort control | `--sort <field>` | Customizable ordering |
-| Watch mode | `--watch <interval>` | Auto-refresh for dashboards |
-| Time-awareness | Automatic | Default to current meal period |
-| Walk time | Automatic | Distance estimates in results |
-| Cache control | `<cli> cache clear` | Explicit cache management |
-| Env var config | `CLI_TOKEN`, `CLI_BUILDING` | CI/automation support |
+**Common enhancement types:**
+| Type | Examples | NOT a skill because... |
+|------|----------|----------------------|
+| Flag | `--quiet`, `--output FILE`, `--max-price` | It's a code change to the argument parser |
+| Middleware | Response caching, rate limiting | It's a code change to the HTTP client |
+| Config | Env var support, config file | It's a code change to the config system |
+| Infrastructure | Plugin architecture, watch mode | It's a code change to the CLI framework |
+| Quality fix | Error handling, input validation | It's a bug fix or improvement |
+
+**These items go into the "CLI Enhancement Backlog" section of the output, NOT into skill domains.**

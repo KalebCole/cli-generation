@@ -1,6 +1,30 @@
 # cli-generation
 
-> Generate complete, tested, audited CLIs from any API surface. A [Claude Code](https://docs.anthropic.com/en/docs/claude-code) plugin.
+> **Archived learning experiment.** This was a personal project for learning how agent-native CLIs get built. It has been superseded by [**Printing Press**](https://printingpress.dev) ([source](https://github.com/mvanhorn/cli-printing-press)), which is the de facto tool for CLI generation. Use that instead.
+
+I built this to learn how to turn any API surface, or any website with no public API, into an agent-native CLI. It taught me a lot. Then I found Printing Press, read its source, and concluded there is no reason to keep developing this: it is a strictly better version of the same idea, already shipped, already maintained, already used by thousands of people. I am keeping the code here as a personal record of the design work, not as something to install.
+
+**If you landed here looking for a tool, go use Printing Press.**
+
+---
+
+## Why Printing Press instead
+
+I did an honest audit of this project against Printing Press. The result was clear on every axis:
+
+- **It ships real binaries.** Printing Press prints a token-efficient Go CLI plus an MCP server for every target. This project only ever produced plans and skill files.
+- **Its recon is deeper.** The part I was proudest of, reverse-engineering a site's API by driving a browser and mapping the user's flows, is Printing Press's `browser-sniff` (its "Build the user flow plan" step). It derives user stories from site intent, drives the browser through each one to force the hidden endpoints to fire, diffs the public surface against the logged-in surface, and classifies every captured endpoint by whether it can actually be replayed from a plain client. That is more than I had built or designed.
+- **It transcends wrapping.** Local SQLite mirror, FTS5 search, and compound commands that a stateless API wrapper structurally cannot do. This project stopped at wrapping endpoints.
+- **It is verified, not vibes.** A real scorecard, dogfood, and live-verify harness that can even grade hand-built CLIs. My "14-point audit" was a subset of this.
+- **It is a living ecosystem.** A 400+ CLI public library, a contributor leaderboard, and active releases. This is one person's exploration.
+
+Built by [Matt Van Horn](https://github.com/mvanhorn) and [Trevin Chow](https://github.com/tmchow), standing on [Peter Steinberger](https://github.com/steipete)'s discrawl and gogcli. Go support them, not me.
+
+---
+
+## Everything below is preserved as-is, for the record
+
+The original design and documentation follow unchanged. None of it is maintained.
 
 ## Try it now
 

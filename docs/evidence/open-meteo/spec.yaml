@@ -1,0 +1,49 @@
+name: open-meteo
+description: Discovered API spec for open-meteo
+version: 0.1.0
+base_url: https://api.open-meteo.com
+spec_source: sniffed
+auth:
+    type: none
+    header: ""
+    format: ""
+    env_vars: []
+config:
+    format: toml
+    path: ~/.config/open-meteo-pp-cli/config.toml
+resources:
+    forecast:
+        description: Operations on forecast
+        endpoints:
+            list_forecast:
+                method: GET
+                path: /v1/forecast
+                description: GET /v1/forecast
+                params:
+                    - name: current
+                      type: string
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                    - name: latitude
+                      type: string
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                    - name: longitude
+                      type: string
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                body: []
+                response:
+                    type: object
+                    item: forecast
+                pagination: null
+types: {}

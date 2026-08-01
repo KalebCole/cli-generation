@@ -1,0 +1,269 @@
+{
+  "version": "1",
+  "summary": {
+    "target_url": "https://api.open-meteo.com/v1/forecast?latitude=47.6062\u0026longitude=-122.3321\u0026current=temperature_2m",
+    "entry_count": 3,
+    "api_entry_count": 3,
+    "noise_entry_count": 0,
+    "host_distribution": {
+      "api.open-meteo.com": 3
+    },
+    "http_version_distribution": {
+      "http/1.1": 3
+    },
+    "time_start": "2026-08-01T16:56:11.221394176Z",
+    "time_end": "2026-08-01T16:56:11.22148992Z"
+  },
+  "reachability": {
+    "mode": "standard_http",
+    "confidence": 0.65,
+    "reasons": [
+      "no browser-only reachability signals observed"
+    ]
+  },
+  "protocols": [
+    {
+      "label": "rest_json",
+      "confidence": 0.75,
+      "evidence": [
+        {
+          "entry_index": 0,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "JSON HTTP request/response without specialized protocol markers"
+        },
+        {
+          "entry_index": 1,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "JSON HTTP request/response without specialized protocol markers"
+        },
+        {
+          "entry_index": 2,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "JSON HTTP request/response without specialized protocol markers"
+        }
+      ]
+    }
+  ],
+  "auth": {},
+  "endpoint_clusters": [
+    {
+      "host": "api.open-meteo.com",
+      "method": "GET",
+      "path": "/v1/forecast",
+      "count": 3,
+      "statuses": [
+        200
+      ],
+      "content_types": [
+        "application/json"
+      ],
+      "size_class": "empty",
+      "request_shape": {},
+      "response_shape": {},
+      "normalization_flags": [
+        "single-status"
+      ],
+      "confidence": "low",
+      "evidence": [
+        {
+          "entry_index": 0,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "endpoint cluster member"
+        },
+        {
+          "entry_index": 1,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "endpoint cluster member"
+        },
+        {
+          "entry_index": 2,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "endpoint cluster member"
+        }
+      ]
+    }
+  ],
+  "request_sequences": [
+    {
+      "label": "observed_api_flow",
+      "confidence": 0.65,
+      "evidence": [
+        {
+          "entry_index": 0,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "observed API request order"
+        },
+        {
+          "entry_index": 1,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "observed API request order"
+        },
+        {
+          "entry_index": 2,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "observed API request order"
+        }
+      ],
+      "notes": [
+        "HAR timing available for at least one request."
+      ]
+    }
+  ],
+  "candidate_commands": [
+    {
+      "name": "list_forecast",
+      "resource": "forecast",
+      "confidence": 0.55,
+      "rationale": "Derived from observed GET /v1/forecast traffic.",
+      "evidence": [
+        {
+          "entry_index": 0,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "endpoint cluster member"
+        },
+        {
+          "entry_index": 1,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "endpoint cluster member"
+        },
+        {
+          "entry_index": 2,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "endpoint cluster member"
+        }
+      ]
+    }
+  ],
+  "warnings": [
+    {
+      "type": "empty_payload",
+      "message": "API-looking request returned an empty or null payload; schema confidence is weak.",
+      "confidence": 0.65,
+      "evidence": [
+        {
+          "entry_index": 0,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "empty/null payload"
+        }
+      ]
+    },
+    {
+      "type": "empty_payload",
+      "message": "API-looking request returned an empty or null payload; schema confidence is weak.",
+      "confidence": 0.65,
+      "evidence": [
+        {
+          "entry_index": 1,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "empty/null payload"
+        }
+      ]
+    },
+    {
+      "type": "empty_payload",
+      "message": "API-looking request returned an empty or null payload; schema confidence is weak.",
+      "confidence": 0.65,
+      "evidence": [
+        {
+          "entry_index": 2,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "empty/null payload"
+        }
+      ]
+    },
+    {
+      "type": "empty_response_shapes",
+      "message": "All endpoint clusters have empty response shapes; capture may have omitted response bodies. Re-fetch discovered endpoints with curl or another direct HTTP path before generating types.",
+      "confidence": 0.9,
+      "evidence": [
+        {
+          "entry_index": 0,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "endpoint cluster member"
+        },
+        {
+          "entry_index": 1,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "endpoint cluster member"
+        },
+        {
+          "entry_index": 2,
+          "method": "GET",
+          "host": "api.open-meteo.com",
+          "path": "/v1/forecast",
+          "status": 200,
+          "content_type": "application/json",
+          "reason": "endpoint cluster member"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "meta": {
+    "source": "live"
+  },
+  "results": {
+    "current": {
+      "time": "2026-08-01T16:45",
+      "interval": 900,
+      "temperature_2m": 17.0
+    },
+    "latitude": 47.595562,
+    "longitude": -122.32443
+  }
+}

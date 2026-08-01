@@ -1,0 +1,1 @@
+warning: 1/1 forecast items returned but not cached locally (no extractable ID field; offline lookup against these rows will be incomplete; live queries unaffected)

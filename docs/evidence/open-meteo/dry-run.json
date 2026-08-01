@@ -1,0 +1,10 @@
+{
+  "dry_run": true,
+  "endpoint_count": 1,
+  "name": "open-meteo",
+  "output_dir": "/Users/kalebcole/printing-press/library/open-meteo",
+  "resource_count": 1,
+  "spec_files": [
+    ".cli-pipeline/runs/open-meteo/open-meteo.yaml"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "schema_version": 1,
+  "target_url": "https://hn.algolia.com/",
+  "name": "hn-search",
+  "started_at": "2026-08-01T16:55:31.138631+00:00",
+  "status": "spec_needs_review",
+  "artifacts": {
+    "reachability": ".cli-pipeline/runs/hn-search/reachability.json",
+    "spec": ".cli-pipeline/runs/hn-search/hn-search.yaml",
+    "traffic_analysis": ".cli-pipeline/runs/hn-search/traffic-analysis.json"
+  },
+  "quality_findings": [
+    "line 57: request body JSON document was emitted as a parameter name",
+    "line 64: request body JSON document was emitted as a parameter name"
+  ],
+  "next_action": "Refine request-body modeling or capture a cleaner endpoint sample, then rerun."
+}

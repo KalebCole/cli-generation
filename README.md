@@ -1,242 +1,96 @@
 # cli-generation
 
-> **Archived learning experiment.** This was a personal project for learning how agent-native CLIs get built. It has been superseded by [**Printing Press**](https://printingpress.dev) ([source](https://github.com/mvanhorn/cli-printing-press)), which is the de facto tool for CLI generation. Use that instead.
+A reconnaissance front end for [Printing Press](https://printingpress.dev).
 
-I built this to learn how to turn any API surface, or any website with no public API, into an agent-native CLI. It taught me a lot. Then I found Printing Press, read its source, and concluded there is no reason to keep developing this: it is a strictly better version of the same idea, already shipped, already maintained, already used by thousands of people. I am keeping the code here as a personal record of the design work, not as something to install.
+Give it a website. It works out which user flows matter, captures the API traffic behind those flows, proves the calls can run outside the page, and hands a validated spec to Printing Press.
 
-**If you landed here looking for a tool, go use Printing Press.**
+Printing Press remains the generator. This project handles the messy part before generation: deciding what the CLI should do and turning an undocumented web app into evidence that the generator can trust.
 
----
+## What changed
 
-## Why Printing Press instead
+The original version tried to build its own generator. That was the wrong boundary. Printing Press already generates, builds, audits, and packages agent-native Go CLIs better than this project did.
 
-I did an honest audit of this project against Printing Press. The result was clear on every axis:
+The useful missing piece was intake:
 
-- **It ships real binaries.** Printing Press prints a token-efficient Go CLI plus an MCP server for every target. This project only ever produced plans and skill files.
-- **Its recon is deeper.** The part I was proudest of, reverse-engineering a site's API by driving a browser and mapping the user's flows, is Printing Press's `browser-sniff` (its "Build the user flow plan" step). It derives user stories from site intent, drives the browser through each one to force the hidden endpoints to fire, diffs the public surface against the logged-in surface, and classifies every captured endpoint by whether it can actually be replayed from a plain client. That is more than I had built or designed.
-- **It transcends wrapping.** Local SQLite mirror, FTS5 search, and compound commands that a stateless API wrapper structurally cannot do. This project stopped at wrapping endpoints.
-- **It is verified, not vibes.** A real scorecard, dogfood, and live-verify harness that can even grade hand-built CLIs. My "14-point audit" was a subset of this.
-- **It is a living ecosystem.** A 400+ CLI public library, a contributor leaderboard, and active releases. This is one person's exploration.
+- infer outcome-oriented user flows from a website
+- discover public and authenticated API surfaces
+- capture only the traffic needed by those flows
+- stop for login or sensitive actions without making every step manual
+- reject endpoints that only work inside a live page
+- emit Printing Press's native YAML spec and traffic analysis
 
-Built by [Matt Van Horn](https://github.com/mvanhorn) and [Trevin Chow](https://github.com/tmchow), standing on [Peter Steinberger](https://github.com/steipete)'s discrawl and gogcli. Go support them, not me.
+The old implementation is preserved in [`docs/archive/cli-generation-v1.md`](docs/archive/cli-generation-v1.md).
 
----
+## Run it
 
-## Everything below is preserved as-is, for the record
+From Claude Code after installing the plugin:
 
-The original design and documentation follow unchanged. None of it is maintained.
+```text
+/cli-generation https://example.com
+```
 
-## Try it now
+For an existing HAR or enriched capture:
 
 ```bash
-/cli-generation https://api.example.com
+python3 scripts/website_to_spec.py https://example.com \
+  --har ~/Downloads/example.har \
+  --run-dir .cli-pipeline/runs/example
 ```
+
+The script runs:
+
+1. `cli-printing-press probe-reachability`
+2. `cli-printing-press browser-sniff`
+3. a semantic quality gate for malformed captured parameters
+4. `cli-printing-press generate --dry-run`
+
+On success, `run.json` contains the exact handoff command for full generation. See the [live Open-Meteo and HN Algolia case study](docs/case-study.md) for both the success and rejection paths.
+
+## Human checkpoints
+
+The workflow interrupts only when judgment or consent is necessary:
+
+- approve the final user-flow plan
+- log in when no valid browser session exists
+- approve a write, purchase, message, deletion, or other sensitive action
+
+Names, output paths, capture tooling, transport, auth classification, endpoint grouping, and validation are automatic.
+
+## Artifacts
+
+Each run lives in `.cli-pipeline/runs/<slug>/`.
+
+| File | Purpose |
+|---|---|
+| `run.json` | resumable status and handoff command |
+| `reachability.json` | transport probe result |
+| `use-cases.md` | approved workflows and stop boundaries |
+| `<slug>.yaml` | Printing Press spec |
+| `traffic-analysis.json` | redacted endpoint evidence |
+| `dry-run.json` | generator validation output |
+
+Raw captures and samples stay out of git.
+
+## Tests
+
+```bash
+python3 -m unittest discover -s tests -v
+```
+
+The test suite uses a fake Printing Press binary and verifies the full probe, sniff, validate, and resume contract without touching a live account.
+
+## Requirements
+
+- Python 3.9+
+- `cli-printing-press` 4.29+
+- A supported browser capture path for undocumented sites: browser automation, CDP, or a HAR export
 
 ## Install
 
 ```bash
-# 1. Add the marketplace
 claude plugin marketplace add https://github.com/KalebCole/cli-generation.git
-
-# 2. Install the plugin
 claude plugin install cli-generation@cli-generation-marketplace
 ```
-
-Or from within Claude Code: `/plugin marketplace add KalebCole/cli-generation`, then `/plugin install cli-generation`.
-
-Requires the `superpowers` plugin for TDD and skill creation:
-
-```bash
-claude plugin install superpowers
-```
-
-## What It Does
-
-Point `/cli-generation` at any API surface and it autonomously builds a production-grade CLI:
-
-- **Auth discovery** — figures out how the API authenticates (11 auth types)
-- **API mapping** — parses docs or reverse-engineers endpoints
-- **Validation** — hits every endpoint, confirms responses
-- **Architecture** — designs command tree, flags, JSON output contract
-- **Code generation** — writes the CLI using TDD (tests first)
-- **Quality audit** — grades against 14-point checklist, loops until grade >= B
-- **Skill generation** — creates SKILL.md files so AI agents can use the CLI
-
-Each phase runs in its own subagent. No context bloat.
-
-## Supported Inputs
-
-```bash
-# Web URL
-/cli-generation https://dining.microsoft.com
-
-# OpenAPI / Swagger spec
-/cli-generation ./openapi-spec.yaml
-
-# GraphQL schema
-/cli-generation ./schema.graphql
-
-# gRPC proto
-/cli-generation ./service.proto
-
-# SDK reference
-/cli-generation "Azure SDK for Node.js"
-
-# Raw endpoint list
-/cli-generation "GET /users, POST /users, GET /users/:id, DELETE /users/:id"
-```
-
-## The Pipeline
-
-```mermaid
-flowchart TD
-    INPUT["URL | Spec | SDK | Proto | GraphQL"]
-    
-    P0["<b>Phase 0</b><br/>Classify Input<br/><i>You pick: name, path, stack</i>"]
-    
-    P1["<b>Phase 1</b> · auth-recon<br/>Auth Discovery<br/><i>5 strategies, 11 auth types</i>"]
-    P2["<b>Phase 2</b> · api-recon<br/>API Mapping<br/><i>Parse docs → reverse-engineer</i>"]
-    P3["<b>Phase 3</b> · endpoint-validator<br/>Validate Endpoints<br/><i>Hit every endpoint, confirm schemas</i>"]
-    
-    P4["<b>Phase 4</b> · cli-architect<br/>Design CLI Architecture<br/><i>Commands, flags, JSON output</i>"]
-    P5{"<b>Phase 5</b><br/>Audit Architecture<br/>14-point checklist"}
-    
-    P6["<b>Phase 6</b> · cli-generator<br/>Generate CLI (TDD)<br/><i>Tests first, then implement</i>"]
-    P7{"<b>Phase 7</b><br/>Audit Implementation<br/>14-point checklist"}
-    
-    P8["<b>Phase 8</b> · skill-ideator<br/>Ideate Skills<br/><i>6-category brainstorm</i>"]
-    PAUSE["<b>PAUSE</b><br/>You select which skills to generate"]
-    P9["<b>Phase 9</b> · skill-generator<br/>Generate SKILL.md files<br/><i>Full eval harness + triggers</i>"]
-    
-    DONE(["Done · Push to GitHub"])
-
-    INPUT --> P0
-    P0 --> P1
-    P1 --> P2
-    P2 --> P3
-    P3 --> P4
-    P4 --> P5
-    P5 -->|"grade ≥ B"| P6
-    P5 -->|"grade < B (max 2×)"| P4
-    P6 --> P7
-    P7 -->|"grade ≥ B"| P8
-    P7 -->|"grade < B (max 2×)"| P6
-    P8 --> PAUSE
-    PAUSE --> P9
-    P9 --> DONE
-
-    style INPUT fill:#1a1a2e,stroke:#e94560,color:#fff
-    style DONE fill:#0f3460,stroke:#16213e,color:#fff
-    style PAUSE fill:#533483,stroke:#e94560,color:#fff
-    style P5 fill:#e94560,stroke:#16213e,color:#fff
-    style P7 fill:#e94560,stroke:#16213e,color:#fff
-```
-
-## Tech Stack Options
-
-The CLI it generates uses your choice of stack:
-
-| Stack | CLI Framework | Test Runner | Build / Run | Package File |
-|-------|--------------|-------------|-------------|-------------|
-| **TypeScript** (recommended) | Commander.js | Vitest | tsx / tsup | package.json |
-| **Python** | Click | pytest | uv run | pyproject.toml |
-| **PowerShell** | Native module | Pester | Import-Module | .psd1 |
-| **Custom** | You describe it | You describe it | You describe it | — |
-
-## What You Get
-
-### 1 Command
-
-| Command | What it does |
-|---------|-------------|
-| `/cli-generation` | The orchestrator. Takes an API surface, runs all 9 phases. |
-
-### 6 Skills (independently useful)
-
-Each skill works standalone — you don't need to run the full pipeline.
-
-| Skill | Use when you want to... |
-|-------|------------------------|
-| `cli-auth-recon` | Figure out how an API authenticates |
-| `cli-api-recon` | Map an API's endpoints, schemas, rate limits |
-| `cli-architect` | Design a CLI architecture from scratch |
-| `cli-audit` | Grade any CLI against the 14-point quality checklist |
-| `cli-ideate` | Brainstorm features for a CLI across 6 categories |
-| `cli-skillgen` | Generate SKILL.md files for a CLI |
-
-### 9 Internal Agents
-
-Dispatched by the orchestrator — you don't invoke these directly.
-
-| Agent | Phase | Reads | Writes |
-|-------|-------|-------|--------|
-| auth-recon | 1 | input-classification.json | auth-profile.json |
-| api-recon | 2 | input-classification, auth-profile | endpoints.json |
-| endpoint-validator | 3 | auth-profile, endpoints | validated-endpoints.json |
-| cli-architect | 4 | validated-endpoints, auth-profile | architecture.md |
-| architecture-auditor | 5 | architecture.md | arch-audit.md |
-| cli-generator | 6 | architecture.md, validated-endpoints | src/, tests/ |
-| implementation-auditor | 7 | CLI repo codebase | impl-audit.md |
-| skill-ideator | 8 | validated-endpoints, architecture | feature-backlog.md |
-| skill-generator | 9 | CLI repo, feature-backlog | skills/ |
-
-## Auth Discovery
-
-The auth-recon agent tries 5 strategies autonomously before asking you anything:
-
-1. **Edge browser cookies** — CDP extraction from active sessions
-2. **Environment variables** — `*_TOKEN`, `*_KEY`, `*_SECRET`
-3. **OpenAPI securitySchemes** — parsed from specs
-4. **Cloud provider configs** — `~/.aws/`, `~/.azure/`, `~/.kube/`
-5. **Unauthenticated probe** — check if the API is public
-
-Supports 11 auth types: Bearer, API key, Cookie, Basic, OAuth2 (manual flow), AWS SigV4, Azure AD, mTLS, Custom headers, SAML, No auth.
-
-**Security:** `auth-profile.json` never stores actual secrets — only mechanism descriptions and credential source references.
-
-## Quality Checklist
-
-The 14-point audit checklist grades CLIs on:
-
-| # | Check | Weight |
-|---|-------|--------|
-| 1 | JSON output to stdout | 10 |
-| 2 | Structured exit codes (0-5) | 5 |
-| 3 | --help on every command | 5 |
-| 4 | --dry-run on write/delete | 5 |
-| 5 | --yes/--force on destructive | 5 |
-| 6 | --format flag (json/table/yaml/csv) | 10 |
-| 7 | Auth credential precedence chain | 8 |
-| 8 | HTTP retry on 429/5xx | 8 |
-| 9 | Auto-pagination | 7 |
-| 10 | Layered SKILL.md files | 8 |
-| 11 | GWS-pattern README | 5 |
-| 12 | No secrets in output/logs | 8 |
-| 13 | JSON error objects (code, type, message) | 8 |
-| 14 | Test coverage (CRUD, auth, retry, pagination) | 8 |
-
-Grade scale: A (90-100%) · B (80-89%) · C (70-79%) · D (60-69%) · F (<60%)
-
-The pipeline loops Phases 4→5 and 6→7 until grade >= B (max 2 iterations).
-
-## Cross-Session Resume
-
-If a pipeline run is interrupted, `/cli-generation` detects the existing `.cli-pipeline/pipeline-status.json` and offers to resume from the last incomplete phase.
-
-## External Dependencies
-
-| Dependency | Used by | Phase |
-|------------|---------|-------|
-| `superpowers:test-driven-development` | cli-generator | 6 |
-| `superpowers:verification-before-completion` | cli-generator | 6 |
-| `superpowers:skill-creator` | skill-generator | 9 |
-
-If superpowers isn't installed, these phases use fallback behavior (no TDD cycle, template-based skill generation).
-
-## Design Spec
-
-Full architecture, phase details, and context management strategy:
-[docs/specs/2026-04-12-cli-generation-plugin-design.md](docs/specs/2026-04-12-cli-generation-plugin-design.md)
 
 ## License
 

@@ -1,0 +1,207 @@
+name: hn-search
+description: Discovered API spec for hn-algolia
+version: 0.1.0
+base_url: https://uj5wyc0l7x-dsn.algolia.net
+spec_source: sniffed
+http_transport: browser-chrome-h2
+auth:
+    type: none
+    header: ""
+    format: ""
+    env_vars: []
+auth_warnings:
+    - 'rejected auth candidate "x-algolia-api-key" from query: seen on fewer than 3 distinct endpoints'
+    - 'rejected auth candidate "{\"query\":\"\",\"analyticsTags\":[\"web\"],\"page\":0,\"hitsPerPage\":30,\"minWordSizefor1Typo\":4,\"minWordSizefor2Typos\":8,\"advancedSyntax\":true,\"ignorePlurals\":false,\"clickAnalytics\":true,\"minProximity\":7,\"numericFilters\":[],\"tagFilters\":[[\"story\"],[]],\"typoTolerance\":true,\"queryType\":\"prefixNone\",\"restrictSearchableAttributes\":[\"title\",\"comment_text\",\"url\",\"story_text\",\"author\"],\"getRankingInfo\":true}" from body: request body field'
+    - 'rejected auth candidate "{\"query\":\"agentic cli\",\"analyticsTags\":[\"web\"],\"page\":0,\"hitsPerPage\":30,\"minWordSizefor1Typo\":4,\"minWordSizefor2Typos\":8,\"advancedSyntax\":true,\"ignorePlurals\":false,\"clickAnalytics\":true,\"minProximity\":7,\"numericFilters\":[],\"tagFilters\":[[\"story\"],[]],\"typoTolerance\":true,\"queryType\":\"prefixLast\",\"restrictSearchableAttributes\":[\"title\",\"comment_text\",\"url\",\"story_text\",\"author\"],\"getRankingInfo\":true}" from body: request body field'
+config:
+    format: toml
+    path: ~/.config/hn-search-pp-cli/config.toml
+resources:
+    indexes:
+        description: Operations on query
+        endpoints:
+            create_query:
+                method: POST
+                path: /{id}/indexes/Item_dev/query
+                description: POST /{id}/indexes/Item_dev/query
+                params:
+                    - name: id
+                      type: string
+                      required: true
+                      positional: true
+                      default: null
+                      description: The id path segment
+                      fields: []
+                    - name: x-algolia-agent
+                      type: string
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                    - name: x-algolia-api-key
+                      type: string
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                    - name: x-algolia-application-id
+                      type: string
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                body:
+                    - name: '{"query":"","analyticsTags":["web"],"page":0,"hitsPerPage":30,"minWordSizefor1Typo":4,"minWordSizefor2Typos":8,"advancedSyntax":true,"ignorePlurals":false,"clickAnalytics":true,"minProximity":7,"numericFilters":[],"tagFilters":[["story"],[]],"typoTolerance":true,"queryType":"prefixNone","restrictSearchableAttributes":["title","comment_text","url","story_text","author"],"getRankingInfo":true}'
+                      type: string
+                      required: false
+                      positional: false
+                      default: ""
+                      description: ""
+                      fields: []
+                    - name: '{"query":"agentic cli","analyticsTags":["web"],"page":0,"hitsPerPage":30,"minWordSizefor1Typo":4,"minWordSizefor2Typos":8,"advancedSyntax":true,"ignorePlurals":false,"clickAnalytics":true,"minProximity":7,"numericFilters":[],"tagFilters":[["story"],[]],"typoTolerance":true,"queryType":"prefixLast","restrictSearchableAttributes":["title","comment_text","url","story_text","author"],"getRankingInfo":true}'
+                      type: string
+                      required: false
+                      positional: false
+                      default: ""
+                      description: ""
+                      fields: []
+                request_content_type: application/x-www-form-urlencoded
+                response:
+                    type: object
+                    item: query
+                pagination: null
+    isalive:
+        description: Operations on isalive
+        endpoints:
+            get_isalive:
+                method: GET
+                path: /{id}/isalive
+                base_url: https://c3-de-1.algolia.net
+                description: GET /{id}/isalive
+                params:
+                    - name: id
+                      type: string
+                      required: true
+                      positional: true
+                      default: null
+                      description: The id path segment
+                      fields: []
+                    - name: probe
+                      type: integer
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                body: []
+                response:
+                    type: object
+                    item: isalive
+                pagination: null
+            get_isalive_2:
+                method: GET
+                path: /{id}/isalive
+                base_url: https://t32-usw-1.algolia.net
+                description: GET /{id}/isalive
+                params:
+                    - name: id
+                      type: string
+                      required: true
+                      positional: true
+                      default: null
+                      description: The id path segment
+                      fields: []
+                    - name: probe
+                      type: integer
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                body: []
+                response:
+                    type: object
+                    item: isalive
+                pagination: null
+            get_isalive_3:
+                method: GET
+                path: /{id}/isalive
+                base_url: https://t5-eu-1.algolia.net
+                description: GET /{id}/isalive
+                params:
+                    - name: id
+                      type: string
+                      required: true
+                      positional: true
+                      default: null
+                      description: The id path segment
+                      fields: []
+                    - name: probe
+                      type: integer
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                body: []
+                response:
+                    type: object
+                    item: isalive
+                pagination: null
+            get_isalive_4:
+                method: GET
+                path: /{id}/isalive
+                base_url: https://t5-in-1.algolia.net
+                description: GET /{id}/isalive
+                params:
+                    - name: id
+                      type: string
+                      required: true
+                      positional: true
+                      default: null
+                      description: The id path segment
+                      fields: []
+                    - name: probe
+                      type: integer
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                body: []
+                response:
+                    type: object
+                    item: isalive
+                pagination: null
+    settings:
+        description: Operations on settings
+        endpoints:
+            get_settings:
+                method: GET
+                path: /{id}/settings
+                base_url: https://telemetry.algolia.com
+                description: GET /{id}/settings
+                params:
+                    - name: applications
+                      type: string
+                      required: false
+                      positional: false
+                      default: null
+                      description: ""
+                      fields: []
+                    - name: id
+                      type: string
+                      required: true
+                      positional: true
+                      default: null
+                      description: The id path segment
+                      fields: []
+                body: []
+                response:
+                    type: object
+                    item: settings
+                pagination: null
+types: {}

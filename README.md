@@ -14,7 +14,6 @@ I did an honest audit of this project against Printing Press. The result was cle
 
 - **It ships real binaries.** Printing Press prints a token-efficient Go CLI plus an MCP server for every target. This project only ever produced plans and skill files.
 - **Its recon is deeper.** The part I was proudest of, reverse-engineering a site's API by driving a browser and mapping the user's flows, is Printing Press's `browser-sniff` (its "Build the user flow plan" step). It derives user stories from site intent, drives the browser through each one to force the hidden endpoints to fire, diffs the public surface against the logged-in surface, and classifies every captured endpoint by whether it can actually be replayed from a plain client. That is more than I had built or designed.
-- **It transcends wrapping.** Local SQLite mirror, FTS5 search, and compound commands that a stateless API wrapper structurally cannot do. This project stopped at wrapping endpoints.
 - **It is verified, not vibes.** A real scorecard, dogfood, and live-verify harness that can even grade hand-built CLIs. My "14-point audit" was a subset of this.
 - **It is a living ecosystem.** A 400+ CLI public library, a contributor leaderboard, and active releases. This is one person's exploration.
 

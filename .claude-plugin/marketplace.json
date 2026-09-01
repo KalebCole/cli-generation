@@ -17,6 +17,16 @@
       "description": "Autonomous CLI generation from any API surface. 10-phase subagent pipeline: auth recon, API mapping, validation, architecture, audit, TDD generation, skill creation.",
       "version": "1.0.0",
       "strict": true
+    },
+    {
+      "name": "cli-printing-press",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/mvanhorn/cli-printing-press.git"
+      },
+      "description": "Create polished, long-form technical content from source material.",
+      "version": "4.29.0",
+      "strict": true
     }
   ]
 }
